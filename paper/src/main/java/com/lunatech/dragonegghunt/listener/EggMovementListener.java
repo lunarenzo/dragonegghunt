@@ -175,9 +175,7 @@ public class EggMovementListener implements Listener {
     private void checkAllPlayersDelayed() {
         Bukkit.getScheduler().runTask(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                boolean hasEgg = player.getInventory().contains(Material.DRAGON_EGG)
-                    || (player.getItemOnCursor() != null && player.getItemOnCursor().getType() == Material.DRAGON_EGG);
-
+                boolean hasEgg = hasEgg(player);
                 UUID currentHolder = getHolderUuid();
 
                 if (hasEgg) {
@@ -195,9 +193,7 @@ public class EggMovementListener implements Listener {
 
     private void checkPossessionDelayed(Player player) {
         Bukkit.getScheduler().runTask(plugin, () -> {
-            boolean hasEgg = player.getInventory().contains(Material.DRAGON_EGG)
-                || (player.getItemOnCursor() != null && player.getItemOnCursor().getType() == Material.DRAGON_EGG);
-
+            boolean hasEgg = hasEgg(player);
             UUID currentHolder = getHolderUuid();
 
             if (hasEgg) {
@@ -210,6 +206,40 @@ public class EggMovementListener implements Listener {
                 }
             }
         });
+    }
+
+    private boolean hasEgg(Player player) {
+        if (player.getInventory().contains(Material.DRAGON_EGG)) {
+            return true;
+        }
+
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        if (offHand != null && offHand.getType() == Material.DRAGON_EGG) {
+            return true;
+        }
+
+        ItemStack cursor = player.getItemOnCursor();
+        if (cursor != null && cursor.getType() == Material.DRAGON_EGG) {
+            return true;
+        }
+
+        org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
+        if (openInv != null) {
+            org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
+            if (topInventory != null) {
+                org.bukkit.event.inventory.InventoryType type = topInventory.getType();
+                if (type == org.bukkit.event.inventory.InventoryType.CRAFTING || 
+                    type == org.bukkit.event.inventory.InventoryType.WORKBENCH) {
+                    for (ItemStack item : topInventory.getContents()) {
+                        if (item != null && item.getType() == Material.DRAGON_EGG) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private UUID getHolderUuid() {
