@@ -13,6 +13,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDropItemEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -213,6 +220,17 @@ public class EggMovementListener implements Listener {
         });
     }
 
+    private boolean isTrackedAlphaEggBlock(Block block) {
+        EggState state = eggTrackerService.getState();
+        if (state instanceof EggState.Placed placed) {
+            return block.getWorld().getName().equals(placed.worldName()) &&
+                block.getX() == (int) Math.round(placed.x()) &&
+                block.getY() == (int) Math.round(placed.y()) &&
+                block.getZ() == (int) Math.round(placed.z());
+        }
+        return false;
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
@@ -256,15 +274,110 @@ public class EggMovementListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (block.getType() == Material.DRAGON_EGG) {
-            EggState state = eggTrackerService.getState();
-            if (state instanceof EggState.Placed placed) {
-                if (block.getWorld().getName().equals(placed.worldName()) &&
+        if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+            event.setDropItems(false);
+            
+            ItemStack alphaEgg = new ItemStack(Material.DRAGON_EGG);
+            org.bukkit.inventory.meta.ItemMeta meta = alphaEgg.getItemMeta();
+            if (meta != null) {
+                meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+                alphaEgg.setItemMeta(meta);
+            }
+            block.getWorld().dropItemNaturally(block.getLocation(), alphaEgg);
+            
+            eggTrackerService.updateState(new EggState.Unheld());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        for (Block block : event.getBlocks()) {
+            if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockPistonRetract(BlockPistonRetractEvent event) {
+        for (Block block : event.getBlocks()) {
+            if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockFromTo(BlockFromToEvent event) {
+        Block block = event.getBlock();
+        if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+            Block toBlock = event.getToBlock();
+            eggTrackerService.updateState(new EggState.Placed(
+                toBlock.getWorld().getName(),
+                toBlock.getX(),
+                toBlock.getY(),
+                toBlock.getZ()
+            ));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        Block block = event.getBlock();
+        if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+            event.getEntity().getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+            eggTrackerService.updateState(new EggState.Unheld());
+        } else if (event.getEntityType() == org.bukkit.entity.EntityType.FALLING_BLOCK && event.getTo() == Material.DRAGON_EGG) {
+            if (event.getEntity().getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER)) {
+                Block targetBlock = event.getBlock();
+                eggTrackerService.updateState(new EggState.Placed(
+                    targetBlock.getWorld().getName(),
+                    targetBlock.getX(),
+                    targetBlock.getY(),
+                    targetBlock.getZ()
+                ));
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onEntityDropItem(EntityDropItemEvent event) {
+        if (event.getEntity().getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER)) {
+            Item itemEntity = event.getItemDrop();
+            if (itemEntity.getItemStack().getType() == Material.DRAGON_EGG) {
+                ItemStack item = itemEntity.getItemStack();
+                org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+                    item.setItemMeta(meta);
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        handleExplosion(event.blockList());
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        handleExplosion(event.blockList());
+    }
+
+    private void handleExplosion(java.util.List<Block> blocks) {
+        EggState state = eggTrackerService.getState();
+        if (state instanceof EggState.Placed placed) {
+            for (Block block : blocks) {
+                if (block.getType() == Material.DRAGON_EGG &&
+                    block.getWorld().getName().equals(placed.worldName()) &&
                     block.getX() == (int) Math.round(placed.x()) &&
                     block.getY() == (int) Math.round(placed.y()) &&
                     block.getZ() == (int) Math.round(placed.z())) {
                     
-                    event.setDropItems(false);
+                    block.setType(Material.AIR);
                     
                     ItemStack alphaEgg = new ItemStack(Material.DRAGON_EGG);
                     org.bukkit.inventory.meta.ItemMeta meta = alphaEgg.getItemMeta();
@@ -275,6 +388,7 @@ public class EggMovementListener implements Listener {
                     block.getWorld().dropItemNaturally(block.getLocation(), alphaEgg);
                     
                     eggTrackerService.updateState(new EggState.Unheld());
+                    break;
                 }
             }
         }
