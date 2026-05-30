@@ -95,7 +95,7 @@ final class DumpCommand extends Command {
      * @return the formatted server dump as a string
      */
     private String log() {
-        final JavaPlugin plugin = Example.getInstance();
+        final JavaPlugin plugin = DragonEggHunt.getInstance();
         final StringBuilder dump = new StringBuilder();
 
         // Server info
@@ -348,7 +348,7 @@ final class DumpCommand extends Command {
      * @throws IOException if an error occurs during upload
      */
     private @Nullable String upload(final String content) throws IOException {
-        final JavaPlugin plugin = Example.getInstance();
+        final JavaPlugin plugin = DragonEggHunt.getInstance();
         final URL url = URI.create(MCLO_GS_URL).toURL();
 
         final HttpURLConnection con = (HttpURLConnection) url.openConnection();
