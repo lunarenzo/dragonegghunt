@@ -60,18 +60,18 @@ public class EggHuntCommand extends Command {
         EggState state = eggTrackerService.getState();
         if (state instanceof EggState.Held held) {
             String name = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
-            sender.sendMessage(ColorParser.of("<gold>Dragon Egg is currently held by: <yellow><player>")
+            sender.sendMessage(ColorParser.of(Translation.of("commands.egghunt.info.held"))
                 .with("player", name != null ? name : "Unknown")
                 .build());
         } else if (state instanceof EggState.Placed placed) {
-            sender.sendMessage(ColorParser.of("<gold>Dragon Egg is placed at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+            sender.sendMessage(ColorParser.of(Translation.of("commands.egghunt.info.placed"))
                 .with("x", String.valueOf((int) placed.x()))
                 .with("y", String.valueOf((int) placed.y()))
                 .with("z", String.valueOf((int) placed.z()))
                 .with("world", placed.worldName())
                 .build());
         } else {
-            sender.sendMessage(ColorParser.of("<red>The Dragon Egg is currently unheld.").build());
+            sender.sendMessage(Translation.as("commands.egghunt.info.unheld"));
         }
     }
 

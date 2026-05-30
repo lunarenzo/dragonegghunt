@@ -22,7 +22,15 @@
       "failure": "<red>Failed to upload dump: <error>",
       "dumping": "<green>Gathering dump information and uploading to mclo.gs..."
     },
+    "example": {
+      "feedback": "<white>Read more about CommandAPI &9<click:open_url:'https://commandapi.jorel.dev/9.0.3/'>here</click><white>."
+    },
     "egghunt": {
+      "info": {
+        "held": "<gold>Dragon Egg is currently held by: <yellow><player>",
+        "placed": "<gold>Dragon Egg is placed at: <yellow><x>, <y>, <z> <gray>in <white><world>",
+        "unheld": "<red>The Dragon Egg is currently unheld."
+      },
       "setholder": {
         "invalid-player": "<red>Invalid player specified.",
         "success": "<green>Set <yellow><player> <green>as the holder and gave them a Dragon Egg."
@@ -36,6 +44,12 @@
     }
   },
   "egghunt": {
+    "actionbar": {
+      "held-online": "<gold>Dragon Egg Holder: <yellow><player> <gray>(<white><x>, <y>, <z> in <world><gray>)",
+      "held-offline": "<gold>Dragon Egg Holder: <yellow><player> <red>(Offline)",
+      "placed": "<gold>Dragon Egg placed at: <yellow><x>, <y>, <z> <gray>in <white><world>",
+      "dropped": "<gold>Dragon Egg dropped at: <yellow><x>, <y>, <z> <gray>in <white><world>"
+    },
     "picked-up": "<green>You picked up the Dragon Egg!",
     "placed": "<yellow>You placed the Dragon Egg!",
     "holder-quit-broadcast": "<red>The holder has logged out. The Dragon Egg was dropped at their location!",

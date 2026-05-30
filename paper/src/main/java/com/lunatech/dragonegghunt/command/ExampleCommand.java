@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandArguments;
 import com.lunatech.dragonegghunt.AbstractExample;
 import io.github.milkdrinkers.colorparser.paper.ColorParser;
+import io.github.milkdrinkers.wordweaver.Translation;
 import org.bukkit.command.CommandSender;
 
 import static com.lunatech.dragonegghunt.command.CommandHandler.BASE_PERM;
@@ -35,7 +36,7 @@ final class ExampleCommand extends Command {
 
     private void executorExample(CommandSender sender, CommandArguments args) {
         sender.sendMessage(
-            ColorParser.of("<white>Read more about CommandAPI &9<click:open_url:'https://commandapi.jorel.dev/9.0.3/'>here</click><white>.")
+            ColorParser.of(Translation.of("commands.example.feedback"))
                 .legacy() // Parse legacy color codes
                 .build()
         );

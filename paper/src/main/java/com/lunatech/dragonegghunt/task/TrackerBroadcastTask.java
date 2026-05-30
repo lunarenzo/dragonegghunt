@@ -4,6 +4,7 @@ import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import com.lunatech.dragonegghunt.state.EggState;
 import io.github.milkdrinkers.colorparser.paper.ColorParser;
+import io.github.milkdrinkers.wordweaver.Translation;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ public class TrackerBroadcastTask implements Runnable {
                 Player holder = Bukkit.getPlayer(held.holderUuid());
                 if (holder != null && holder.isOnline()) {
                     var loc = holder.getLocation();
-                    message = ColorParser.of("<gold>Dragon Egg Holder: <yellow><player> <gray>(<white><x>, <y>, <z> in <world><gray>)")
+                    message = ColorParser.of(Translation.of("egghunt.actionbar.held-online"))
                         .with("player", holder.getName())
                         .with("x", String.valueOf(loc.getBlockX()))
                         .with("y", String.valueOf(loc.getBlockY()))
@@ -43,12 +44,12 @@ public class TrackerBroadcastTask implements Runnable {
                     if (offlineName == null) {
                         offlineName = "Unknown";
                     }
-                    message = ColorParser.of("<gold>Dragon Egg Holder: <yellow><player> <red>(Offline)")
+                    message = ColorParser.of(Translation.of("egghunt.actionbar.held-offline"))
                         .with("player", offlineName)
                         .build();
                 }
             } else if (state instanceof EggState.Placed placed) {
-                message = ColorParser.of("<gold>Dragon Egg placed at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+                message = ColorParser.of(Translation.of("egghunt.actionbar.placed"))
                     .with("x", String.valueOf((int) placed.x()))
                     .with("y", String.valueOf((int) placed.y()))
                     .with("z", String.valueOf((int) placed.z()))
@@ -58,14 +59,14 @@ public class TrackerBroadcastTask implements Runnable {
                 org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
                 if (entity != null && entity.isValid() && !entity.isDead()) {
                     var loc = entity.getLocation();
-                    message = ColorParser.of("<gold>Dragon Egg dropped at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+                    message = ColorParser.of(Translation.of("egghunt.actionbar.dropped"))
                         .with("x", String.valueOf(loc.getBlockX()))
                         .with("y", String.valueOf(loc.getBlockY()))
                         .with("z", String.valueOf(loc.getBlockZ()))
                         .with("world", loc.getWorld().getName())
                         .build();
                 } else {
-                    message = ColorParser.of("<gold>Dragon Egg dropped at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+                    message = ColorParser.of(Translation.of("egghunt.actionbar.dropped"))
                         .with("x", String.valueOf((int) dropped.x()))
                         .with("y", String.valueOf((int) dropped.y()))
                         .with("z", String.valueOf((int) dropped.z()))
