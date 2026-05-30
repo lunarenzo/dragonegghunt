@@ -1,0 +1,35 @@
+package com.lunatech.dragonegghunt.translation;
+
+import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.Reloadable;
+import com.lunatech.dragonegghunt.config.ConfigHandler;
+import io.github.milkdrinkers.colorparser.paper.ColorParser;
+import io.github.milkdrinkers.wordweaver.Translation;
+import io.github.milkdrinkers.wordweaver.config.TranslationConfig;
+
+import java.nio.file.Path;
+
+/**
+ * A wrapper handler class for handling WordWeaver lifecycle.
+ */
+public class TranslationHandler implements Reloadable {
+    private final ConfigHandler configHandler;
+
+    public TranslationHandler(ConfigHandler configHandler) {
+        this.configHandler = configHandler;
+    }
+
+    @Override
+    public void onEnable(AbstractExample plugin) {
+        Translation.initialize(TranslationConfig.builder() // Initialize word-weaver
+            .translationDirectory(plugin.getDataPath().resolve("lang"))
+            .resourcesDirectory(Path.of("lang"))
+            .extractLanguages(true)
+            .updateLanguages(true)
+            .language(configHandler.getConfig().language)
+            .defaultLanguage("en_US")
+            .componentConverter(s -> ColorParser.of(s).build()) // Use color parser for components by default
+            .build()
+        );
+    }
+}
