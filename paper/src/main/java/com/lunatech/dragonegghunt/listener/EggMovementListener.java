@@ -417,13 +417,8 @@ public class EggMovementListener implements Listener {
     public void onBlockFromTo(BlockFromToEvent event) {
         Block block = event.getBlock();
         if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
-            Block toBlock = event.getToBlock();
-            eggTrackerService.updateState(new EggState.Placed(
-                toBlock.getWorld().getName(),
-                toBlock.getX(),
-                toBlock.getY(),
-                toBlock.getZ()
-            ));
+            // Cancel teleportation of the Alpha Egg to keep its location stable and prevent untracked movement
+            event.setCancelled(true);
         }
     }
 
