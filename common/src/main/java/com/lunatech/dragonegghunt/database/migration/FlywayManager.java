@@ -62,7 +62,6 @@ public final class FlywayManager {
                 "db/migration/%s".formatted(databaseConfig.getDatabaseType().getJdbcPrefix())
             )
             .javaMigrations(
-                new com.lunatech.dragonegghunt.database.migration.migrations.V4__example_test(),
                 new com.lunatech.dragonegghunt.database.migration.migrations.V5__dragon_egg_state()
             )
             .table(databaseConfig.getTablePrefix() + "schema_history") // Configure tables and migrations
