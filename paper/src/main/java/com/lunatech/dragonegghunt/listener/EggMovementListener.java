@@ -16,6 +16,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -322,6 +323,21 @@ public class EggMovementListener implements Listener {
                 block.getZ()
             ));
             event.getPlayer().sendMessage(Translation.as("egghunt.placed"));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onPortalCreate(PortalCreateEvent event) {
+        for (org.bukkit.block.BlockState state : event.getBlocks()) {
+            if (state.getType() == Material.DRAGON_EGG) {
+                eggTrackerService.updateState(new EggState.Placed(
+                    state.getWorld().getName(),
+                    state.getX(),
+                    state.getY(),
+                    state.getZ()
+                ));
+                break;
+            }
         }
     }
 
