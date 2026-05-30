@@ -47,9 +47,12 @@ public class DragonEggHunt extends AbstractExample {
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
 
 
+    public static org.bukkit.NamespacedKey ALPHA_EGG_KEY;
+
     @Override
     public void onLoad() {
         instance = this;
+        ALPHA_EGG_KEY = new org.bukkit.NamespacedKey(this, "alpha_egg");
 
         configHandler = new ConfigHandler(this);
         translationHandler = new TranslationHandler(configHandler);

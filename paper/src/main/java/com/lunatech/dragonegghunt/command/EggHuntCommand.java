@@ -81,8 +81,14 @@ public class EggHuntCommand extends Command {
             return;
         }
 
-        // Add egg to inventory
-        target.getInventory().addItem(new ItemStack(Material.DRAGON_EGG));
+        // Add tagged Alpha Egg to inventory
+        ItemStack egg = new ItemStack(Material.DRAGON_EGG);
+        org.bukkit.inventory.meta.ItemMeta meta = egg.getItemMeta();
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+            egg.setItemMeta(meta);
+        }
+        target.getInventory().addItem(egg);
         eggTrackerService.updateState(new EggState.Held(target.getUniqueId(), System.currentTimeMillis()));
 
         sender.sendMessage(ColorParser.of("<green>Set <yellow><player> <green>as the holder and gave them a Dragon Egg.")
