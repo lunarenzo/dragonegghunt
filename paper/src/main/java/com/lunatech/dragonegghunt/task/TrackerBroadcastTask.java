@@ -23,7 +23,34 @@ public class TrackerBroadcastTask implements Runnable {
 
     @Override
     public void run() {
+        // Scan online players to keep possession state in sync (handles /give, /clear, creative actions)
+        Player actualHolder = null;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getInventory().contains(org.bukkit.Material.DRAGON_EGG) || 
+                (player.getItemOnCursor() != null && player.getItemOnCursor().getType() == org.bukkit.Material.DRAGON_EGG)) {
+                actualHolder = player;
+                break;
+            }
+        }
+
         EggState state = eggTrackerService.getState();
+
+        if (actualHolder != null) {
+            if (!(state instanceof EggState.Held held) || !held.holderUuid().equals(actualHolder.getUniqueId())) {
+                eggTrackerService.updateState(new EggState.Held(actualHolder.getUniqueId(), System.currentTimeMillis()));
+                state = eggTrackerService.getState();
+            }
+        } else {
+            // If the state says someone is holding it, but they are online and don't have it, mark as Unheld
+            if (state instanceof EggState.Held held) {
+                Player onlineHolder = Bukkit.getPlayer(held.holderUuid());
+                if (onlineHolder != null && onlineHolder.isOnline()) {
+                    eggTrackerService.updateState(new EggState.Unheld());
+                    state = eggTrackerService.getState();
+                }
+            }
+        }
+
         Component message = null;
 
         if (state instanceof EggState.Held held) {
