@@ -48,4 +48,17 @@ public class PluginConfig implements VersionedConfig {
 
     @Comment("Language, specify the language file to use, for example `en_US` which will load `/lang/en_US.json`")
     public String language = "en_US";
+
+    @Comment("Dragon Egg Tracker Settings")
+    public DragonEggTracker dragonEggTracker = new DragonEggTracker();
+
+    @ConfigSerializable
+    public static class DragonEggTracker {
+        @Comment("Broadcast interval in ticks (e.g. 60 ticks = 3 seconds)")
+        public int broadcastInterval = 60;
+
+        @Comment("Should PvP bypass WorldGuard and other regional protections?")
+        public boolean overrideRegionProtection = false;
+    }
 }
+

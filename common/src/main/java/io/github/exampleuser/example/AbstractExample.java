@@ -26,4 +26,12 @@ public abstract class AbstractExample extends JavaPlugin {
      * @return the config handler
      */
     public abstract @NotNull ConfigHandler getConfigHandler();
+
+    /**
+     * Gets egg tracker service.
+     *
+     * @return the egg tracker service
+     */
+    public abstract @NotNull io.github.exampleuser.example.service.EggTrackerService getEggTrackerService();
 }
+

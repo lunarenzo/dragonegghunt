@@ -28,10 +28,13 @@ public class ListenerHandler implements Reloadable {
     public void onEnable(AbstractExample plugin) {
         listeners.clear(); // Clear the list to avoid duplicate listeners when reloading the plugin
 //        listeners.add(new ExampleListener());
+        listeners.add(new EggMovementListener(plugin));
+        listeners.add(new PvPProtectionListener(plugin));
 
         // Register listeners here
         for (Listener listener : listeners) {
             plugin.getServer().getPluginManager().registerEvents(listener, plugin);
         }
+
     }
 }

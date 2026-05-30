@@ -43,6 +43,10 @@ public class Example extends AbstractExample {
     // Handlers list (defines order of load/enable/disable)
     private List<? extends Reloadable> handlers;
 
+    private io.github.exampleuser.example.service.EggTrackerService eggTrackerService;
+    private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
+
+
     @Override
     public void onLoad() {
         instance = this;
@@ -83,6 +87,11 @@ public class Example extends AbstractExample {
 
         DB.init(databaseHandler);
         Messaging.init(messagingHandler);
+
+        // Initialize Egg tracker state & repository
+        io.github.exampleuser.example.data.repository.EggStateRepository eggRepository = new io.github.exampleuser.example.data.repository.impl.SqlEggStateRepository();
+        this.eggTrackerService = new io.github.exampleuser.example.service.impl.DefaultEggTrackerService(eggRepository);
+
         for (Reloadable handler : handlers)
             handler.onLoad(instance);
     }
@@ -95,16 +104,36 @@ public class Example extends AbstractExample {
         if (!DB.isStarted()) {
             Logger.get().warn(ColorParser.of("<yellow>Database handler failed to start. Database support has been disabled.").build());
             Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
 
         if (!Messaging.isReady() && configHandler.getDatabaseConfig().messaging.enabled) {
             Logger.get().warn(ColorParser.of("<yellow>Messaging handler failed to start. Messaging support has been disabled.").build());
             Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        // Load egg tracker state
+        eggTrackerService.loadState();
+        eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
+
+        // Start repeating broadcast task
+        int interval = configHandler.getConfig().dragonEggTracker.broadcastInterval;
+        if (interval > 0) {
+            space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
+            broadcastTask = morePaperLib.scheduling().globalRegionalScheduler().runAtFixedRate(
+                new io.github.exampleuser.example.task.TrackerBroadcastTask(this),
+                20L,
+                interval
+            );
         }
     }
 
     @Override
     public void onDisable() {
+        if (broadcastTask != null) {
+            broadcastTask.cancel();
+        }
         for (Reloadable handler : handlers.reversed()) // If reverse doesn't work implement a new List with your desired disable order
             handler.onDisable(instance);
     }
@@ -133,5 +162,10 @@ public class Example extends AbstractExample {
 
     public @NotNull ExampleAPI getApiHandler() {
         return apiHandler;
+    }
+
+    @Override
+    public @NotNull io.github.exampleuser.example.service.EggTrackerService getEggTrackerService() {
+        return eggTrackerService;
     }
 }
