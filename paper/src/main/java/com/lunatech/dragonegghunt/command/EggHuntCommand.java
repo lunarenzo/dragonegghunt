@@ -8,6 +8,7 @@ import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import com.lunatech.dragonegghunt.state.EggState;
 import io.github.milkdrinkers.colorparser.paper.ColorParser;
+import io.github.milkdrinkers.wordweaver.Translation;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -45,11 +46,11 @@ public class EggHuntCommand extends Command {
                     .withArguments(new EntitySelectorArgument.OnePlayer("player"))
                     .executes(this::executorSetHolder),
                 new CommandAPICommand("override")
-                    .withHelp("Configure WorldGuard/Region PvP bypass", "Configure WorldGuard/Region PvP bypass")
+                    .withHelp("Toggle bypass regional protections.", "Toggle bypass regional protections.")
                     .withArguments(new BooleanArgument("value"))
                     .executes(this::executorOverride),
                 new CommandAPICommand("reset")
-                    .withHelp("Reset the egg holder state", "Reset the egg holder state")
+                    .withHelp("Reset the Dragon Egg state to UNHELD.", "Reset the Dragon Egg state to UNHELD.")
                     .executes(this::executorReset)
             )
             .executes(this::executorInfo);
@@ -77,7 +78,7 @@ public class EggHuntCommand extends Command {
     private void executorSetHolder(CommandSender sender, CommandArguments args) {
         Player target = (Player) args.get("player");
         if (target == null) {
-            sender.sendMessage(ColorParser.of("<red>Invalid player specified.").build());
+            sender.sendMessage(Translation.as("commands.egghunt.setholder.invalid-player"));
             return;
         }
 
@@ -91,9 +92,11 @@ public class EggHuntCommand extends Command {
         target.getInventory().addItem(egg);
         eggTrackerService.updateState(new EggState.Held(target.getUniqueId(), System.currentTimeMillis()));
 
-        sender.sendMessage(ColorParser.of("<green>Set <yellow><player> <green>as the holder and gave them a Dragon Egg.")
-            .with("player", target.getName())
-            .build());
+        sender.sendMessage(
+            ColorParser.of(Translation.of("commands.egghunt.setholder.success"))
+                .with("player", target.getName())
+                .build()
+        );
     }
 
     private void executorOverride(CommandSender sender, CommandArguments args) {
@@ -103,13 +106,15 @@ public class EggHuntCommand extends Command {
         }
 
         eggTrackerService.setOverrideRegionProtection(value);
-        sender.sendMessage(ColorParser.of("<green>Override regional protection set to: <yellow><value>")
-            .with("value", String.valueOf(value))
-            .build());
+        sender.sendMessage(
+            ColorParser.of(Translation.of("commands.egghunt.override.success"))
+                .with("value", String.valueOf(value))
+                .build()
+        );
     }
 
     private void executorReset(CommandSender sender, CommandArguments args) {
         eggTrackerService.updateState(new EggState.Unheld());
-        sender.sendMessage(ColorParser.of("<green>Dragon Egg holder state has been reset to UNHELD.").build());
+        sender.sendMessage(Translation.as("commands.egghunt.reset.success"));
     }
 }

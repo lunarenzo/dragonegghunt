@@ -32,6 +32,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import io.github.milkdrinkers.colorparser.paper.ColorParser;
+import io.github.milkdrinkers.wordweaver.Translation;
 
 import java.util.UUID;
 
@@ -106,9 +108,7 @@ public class EggMovementListener implements Listener {
             meta.getPersistentDataContainer().remove(DragonEggHunt.ALPHA_EGG_KEY);
             stripped.setItemMeta(meta);
         }
-        player.sendMessage(plugin.getConfigHandler().getConfig().language.equals("zh_CN")
-            ? "§c检测到重复的龙蛋，已将其转换为普通装饰性龙蛋！"
-            : "§cDuplicate Dragon Egg detected! Converted to a normal decorative egg.");
+        player.sendMessage(Translation.as("egghunt.duplicate-detected"));
         return stripped;
     }
 
@@ -176,7 +176,7 @@ public class EggMovementListener implements Listener {
         }
     }
 
-    private void triggerPhoenixRespawn(String reasonEn, String reasonZh) {
+    private void triggerPhoenixRespawn(String reasonKey) {
         com.lunatech.dragonegghunt.config.PluginConfig.AltarLocation altar = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
         org.bukkit.World world = Bukkit.getWorld(altar.world);
         org.bukkit.Location loc;
@@ -196,10 +196,12 @@ public class EggMovementListener implements Listener {
         block.setType(Material.DRAGON_EGG);
         eggTrackerService.updateState(new EggState.Placed(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ()));
         
-        String msg = plugin.getConfigHandler().getConfig().language.equals("zh_CN")
-            ? "§c龙蛋已被" + reasonZh + "吞噬，并已返回祭坛！"
-            : "§cThe Alpha Egg was consumed by " + reasonEn + " and has returned to the Altar!";
-        Bukkit.broadcastMessage(msg);
+        String reason = Translation.of("egghunt.reasons." + reasonKey);
+        Bukkit.broadcastMessage(
+            ColorParser.of(Translation.of("egghunt.phoenix-respawn"))
+                .with("reason", reason != null ? reason : reasonKey)
+                .build()
+        );
     }
 
     private void validateAndCleanEggs() {
@@ -224,7 +226,7 @@ public class EggMovementListener implements Listener {
                     int chunkX = ((int) Math.round(dropped.x())) >> 4;
                     int chunkZ = ((int) Math.round(dropped.z())) >> 4;
                     if (world.isChunkLoaded(chunkX, chunkZ)) {
-                        triggerPhoenixRespawn("Clean/Clear", "清理");
+                        triggerPhoenixRespawn("clear");
                         return;
                     }
                 }
@@ -286,9 +288,7 @@ public class EggMovementListener implements Listener {
         Item itemEntity = event.getItem();
         if (isAlphaEgg(itemEntity.getItemStack())) {
             eggTrackerService.updateState(new EggState.Held(player.getUniqueId(), System.currentTimeMillis()));
-            player.sendMessage(plugin.getConfigHandler().getConfig().language.equals("zh_CN") 
-                ? "§a你捡起了龙蛋！" 
-                : "§aYou picked up the Dragon Egg!");
+            player.sendMessage(Translation.as("egghunt.picked-up"));
             checkPossessionDelayed();
         }
     }
@@ -321,9 +321,7 @@ public class EggMovementListener implements Listener {
                 block.getY(),
                 block.getZ()
             ));
-            event.getPlayer().sendMessage(plugin.getConfigHandler().getConfig().language.equals("zh_CN")
-                ? "§e你放置了龙蛋！"
-                : "§eYou placed the Dragon Egg!");
+            event.getPlayer().sendMessage(Translation.as("egghunt.placed"));
         }
     }
 
@@ -544,9 +542,7 @@ public class EggMovementListener implements Listener {
                     itemEntity.getUniqueId()
                 ));
                 
-                Bukkit.broadcastMessage(plugin.getConfigHandler().getConfig().language.equals("zh_CN")
-                    ? "§c持有者退出了游戏，龙蛋已被丢弃在原地！"
-                    : "§cThe holder has logged out. The Dragon Egg was dropped at their location!");
+                Bukkit.broadcastMessage(Translation.as("egghunt.holder-quit-broadcast"));
             }
         }
     }
@@ -558,31 +554,15 @@ public class EggMovementListener implements Listener {
                 event.setCancelled(true);
                 item.remove();
                 
-                String reasonEn = "damage";
-                String reasonZh = "伤害";
+                String reasonKey = "damage";
                 switch (event.getCause()) {
-                    case LAVA -> {
-                        reasonEn = "Lava";
-                        reasonZh = "岩浆";
-                    }
-                    case FIRE, FIRE_TICK -> {
-                        reasonEn = "Fire";
-                        reasonZh = "火焰";
-                    }
-                    case CONTACT -> {
-                        reasonEn = "Cactus";
-                        reasonZh = "仙人掌";
-                    }
-                    case VOID -> {
-                        reasonEn = "Void";
-                        reasonZh = "虚空";
-                    }
-                    case ENTITY_EXPLOSION, BLOCK_EXPLOSION -> {
-                        reasonEn = "Explosion";
-                        reasonZh = "爆炸";
-                    }
+                    case LAVA -> reasonKey = "lava";
+                    case FIRE, FIRE_TICK -> reasonKey = "fire";
+                    case CONTACT -> reasonKey = "cactus";
+                    case VOID -> reasonKey = "void";
+                    case ENTITY_EXPLOSION, BLOCK_EXPLOSION -> reasonKey = "explosion";
                 }
-                triggerPhoenixRespawn(reasonEn, reasonZh);
+                triggerPhoenixRespawn(reasonKey);
             }
         }
     }
@@ -593,7 +573,7 @@ public class EggMovementListener implements Listener {
         if (isAlphaEgg(item.getItemStack())) {
             event.setCancelled(true);
             item.remove();
-            triggerPhoenixRespawn("Despawn", "消失");
+            triggerPhoenixRespawn("despawn");
         }
     }
 

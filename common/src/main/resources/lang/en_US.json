@@ -21,6 +21,34 @@
       "success": "<green>Successfully uploaded dump to <hover:show_text:'Click to open link'><click:open_url:'<link>'><u><link></u></click></hover>.",
       "failure": "<red>Failed to upload dump: <error>",
       "dumping": "<green>Gathering dump information and uploading to mclo.gs..."
+    },
+    "egghunt": {
+      "setholder": {
+        "invalid-player": "<red>Invalid player specified.",
+        "success": "<green>Set <yellow><player> <green>as the holder and gave them a Dragon Egg."
+      },
+      "override": {
+        "success": "<green>Override protection set to: <yellow><value>"
+      },
+      "reset": {
+        "success": "<green>Dragon Egg holder state has been reset to UNHELD."
+      }
+    }
+  },
+  "egghunt": {
+    "picked-up": "<green>You picked up the Dragon Egg!",
+    "placed": "<yellow>You placed the Dragon Egg!",
+    "holder-quit-broadcast": "<red>The holder has logged out. The Dragon Egg was dropped at their location!",
+    "duplicate-detected": "<red>Duplicate Dragon Egg detected! Converted to a normal decorative egg.",
+    "phoenix-respawn": "<red>The Alpha Egg was consumed by <reason> and has returned to the Altar!",
+    "reasons": {
+      "lava": "Lava",
+      "fire": "Fire",
+      "cactus": "Cactus",
+      "void": "Void",
+      "explosion": "Explosion",
+      "clear": "Clean/Clear",
+      "despawn": "Despawn"
     }
   }
 }
