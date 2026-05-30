@@ -43,7 +43,10 @@
       },
       "reload": {
         "success": "<green>Successfully reloaded DragonEggHunt configuration and data!",
-        "failure": "<red>Failed to reload DragonEggHunt! Please check console logs."
+        "failure": "<red>Failed to reload DragonEggHunt! Please check console logs.",
+        "config-success": "<green>Successfully reloaded configuration file!",
+        "lang-success": "<green>Successfully reloaded translation files!",
+        "database-success": "<green>Successfully reloaded database connections and messaging!"
       }
     }
   },

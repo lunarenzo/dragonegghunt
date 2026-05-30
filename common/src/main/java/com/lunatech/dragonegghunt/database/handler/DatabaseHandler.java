@@ -79,6 +79,8 @@ public final class DatabaseHandler extends AbstractService implements Reloadable
             doShutdown();
         } catch (Exception e) {
             logger.error(LOG_PREFIX + "Error while shutting down database:", e);
+        } finally {
+            config = null;
         }
     }
 

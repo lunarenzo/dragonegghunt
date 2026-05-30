@@ -143,6 +143,61 @@ public class DragonEggHunt extends AbstractExample {
     }
 
     /**
+     * Reload only the plugin configuration file.
+     */
+    public void reloadConfigOnly() {
+        if (configHandler != null && !configHandler.validateConfigs()) {
+            throw new IllegalArgumentException("Configuration file contains syntax or validation errors. Reload aborted.");
+        }
+        if (configHandler != null) {
+            configHandler.onLoad(this);
+        }
+        if (eggTrackerService != null && configHandler != null) {
+            eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
+        }
+        if (configHandler != null) {
+            if (broadcastTask != null) {
+                broadcastTask.cancel();
+                broadcastTask = null;
+            }
+            int interval = configHandler.getConfig().dragonEggTracker.broadcastInterval;
+            if (interval > 0) {
+                space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
+                broadcastTask = morePaperLib.scheduling().asyncScheduler().runAtFixedRate(
+                    new com.lunatech.dragonegghunt.task.TrackerBroadcastTask(this),
+                    java.time.Duration.ofMillis(20L * 50L),
+                    java.time.Duration.ofMillis(interval * 50L)
+                );
+            }
+        }
+    }
+
+    /**
+     * Reload only the translation language files.
+     */
+    public void reloadLangOnly() {
+        if (configHandler != null && configHandler.getConfig() != null) {
+            io.github.milkdrinkers.wordweaver.Translation.setLanguage(configHandler.getConfig().language);
+        }
+        io.github.milkdrinkers.wordweaver.Translation.reload();
+    }
+
+    /**
+     * Reload database connections and messaging setup.
+     */
+    public void reloadDatabaseOnly() {
+        if (databaseHandler != null) {
+            databaseHandler.onDisable(this);
+            databaseHandler.onLoad(this);
+        }
+        if (messagingHandler != null) {
+            messagingHandler.onDisable(this);
+            messagingHandler.onLoad(this);
+            messagingHandler.onEnable(this);
+        }
+    }
+
+    /**
      * Use to reload the entire plugin.
      */
     public void onReload() {
@@ -151,9 +206,9 @@ public class DragonEggHunt extends AbstractExample {
         }
         try {
             Logger.get().info(ColorParser.of("<green>Reloading DragonEggHunt...").build());
-            onDisable();
-            onLoad();
-            onEnable();
+            reloadConfigOnly();
+            reloadLangOnly();
+            reloadDatabaseOnly();
             Logger.get().info(ColorParser.of("<green>DragonEggHunt reloaded successfully.").build());
         } catch (Throwable t) {
             Logger.get().error(ColorParser.of("<red>Failed to reload DragonEggHunt! Safely disabling to prevent server crash or memory leak...").build());

@@ -56,6 +56,20 @@ public class EggHuntCommand extends Command {
                     .withHelp("Reload the plugin configuration and data safely.", "Reload the plugin configuration and data safely.")
                     .withPermission(BASE_PERM + ".reload")
                     .executes(this::executorReload)
+                    .withSubcommands(
+                        new CommandAPICommand("all")
+                            .withHelp("Reload all components (config, translations, database, messaging).", "Reload all components.")
+                            .executes(this::executorReload),
+                        new CommandAPICommand("config")
+                            .withHelp("Reload only the config file.", "Reload only config.")
+                            .executes(this::executorReloadConfig),
+                        new CommandAPICommand("lang")
+                            .withHelp("Reload only translation files.", "Reload only translation.")
+                            .executes(this::executorReloadLang),
+                        new CommandAPICommand("database")
+                            .withHelp("Reload database connections and messaging.", "Reload database.")
+                            .executes(this::executorReloadDatabase)
+                    )
             )
             .executes(this::executorInfo);
     }
@@ -126,6 +140,33 @@ public class EggHuntCommand extends Command {
         try {
             plugin.onReload();
             sender.sendMessage(Translation.as("commands.egghunt.reload.success"));
+        } catch (Exception e) {
+            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+        }
+    }
+
+    private void executorReloadConfig(CommandSender sender, CommandArguments args) {
+        try {
+            plugin.reloadConfigOnly();
+            sender.sendMessage(Translation.as("commands.egghunt.reload.config-success"));
+        } catch (Exception e) {
+            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+        }
+    }
+
+    private void executorReloadLang(CommandSender sender, CommandArguments args) {
+        try {
+            plugin.reloadLangOnly();
+            sender.sendMessage(Translation.as("commands.egghunt.reload.lang-success"));
+        } catch (Exception e) {
+            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+        }
+    }
+
+    private void executorReloadDatabase(CommandSender sender, CommandArguments args) {
+        try {
+            plugin.reloadDatabaseOnly();
+            sender.sendMessage(Translation.as("commands.egghunt.reload.database-success"));
         } catch (Exception e) {
             sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
         }

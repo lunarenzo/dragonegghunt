@@ -107,6 +107,8 @@ public final class MessagingHandler extends AbstractService implements Reloadabl
             doShutdown();
         } catch (Exception e) {
             logger.error(LOG_PREFIX + "Error while shutting down message broker:", e);
+        } finally {
+            config = null;
         }
     }
 

@@ -34,8 +34,10 @@ public class PAPIHook extends AbstractHook {
         if (!isHookLoaded())
             return;
 
-        PAPIExpansion.unregister();
-        PAPIExpansion = null;
+        if (PAPIExpansion != null) {
+            PAPIExpansion.unregister();
+            PAPIExpansion = null;
+        }
     }
 
     @Override
