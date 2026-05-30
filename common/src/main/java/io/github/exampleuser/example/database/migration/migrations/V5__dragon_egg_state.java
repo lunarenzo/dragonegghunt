@@ -20,16 +20,17 @@ public class V5__dragon_egg_state extends BaseJavaMigration {
         final Connection connection = flywayContext.getConnection();
         final DSLContext context = MigrationUtils.getContext(connection);
 
-        context.createTableIfNotExists(name("dragon_egg_state"))
-            .column(field("id", INTEGER.notNull()))
-            .column(field("state_type", VARCHAR(50).notNull()))
-            .column(field("holder_uuid", VARCHAR(36)))
-            .column(field("world_name", VARCHAR(255)))
-            .column(field("x", DOUBLE))
-            .column(field("y", DOUBLE))
-            .column(field("z", DOUBLE))
-            .column(field("since", BIGINT))
-            .constraints(org.jooq.impl.DSL.constraint(name("pk_dragon_egg_state")).primaryKey(name("id")))
-            .execute();
+        context.execute("CREATE TABLE IF NOT EXISTS " + context.render(name("dragon_egg_state")) + " (" +
+
+            "id INTEGER NOT NULL PRIMARY KEY," +
+            "state_type VARCHAR(50) NOT NULL," +
+            "holder_uuid VARCHAR(36)," +
+            "world_name VARCHAR(255)," +
+            "x DOUBLE," +
+            "y DOUBLE," +
+            "z DOUBLE," +
+            "since BIGINT" +
+            ")");
     }
 }
+
