@@ -2,7 +2,7 @@ package io.github.exampleuser.example.command;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.BooleanArgument;
-import dev.jorel.commandapi.arguments.PlayerArgument;
+import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.executors.CommandArguments;
 import io.github.exampleuser.example.Example;
 import io.github.exampleuser.example.service.EggTrackerService;
@@ -42,7 +42,7 @@ public class EggHuntCommand extends Command {
                     .executes(this::executorInfo),
                 new CommandAPICommand("setholder")
                     .withHelp("Set a player as the egg holder", "Set a player as the egg holder")
-                    .withArguments(new PlayerArgument("player"))
+                    .withArguments(new EntitySelectorArgument.OnePlayer("player"))
                     .executes(this::executorSetHolder),
                 new CommandAPICommand("override")
                     .withHelp("Configure WorldGuard/Region PvP bypass", "Configure WorldGuard/Region PvP bypass")

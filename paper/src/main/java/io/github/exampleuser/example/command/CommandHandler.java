@@ -43,7 +43,7 @@ public class CommandHandler implements Reloadable {
             .withAliases()
             .register();
 
-        new EggHuntCommand(plugin)
+        new EggHuntCommand(this.plugin)
             .command()
             .register();
 
