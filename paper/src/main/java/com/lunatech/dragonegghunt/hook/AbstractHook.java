@@ -1,7 +1,7 @@
 package com.lunatech.dragonegghunt.hook;
 
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;

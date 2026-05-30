@@ -3,7 +3,7 @@ package com.lunatech.dragonegghunt.command;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIPaperConfig;
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 
 /**

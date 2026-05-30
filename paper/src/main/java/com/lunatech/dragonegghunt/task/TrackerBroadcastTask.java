@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.task;
 
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import com.lunatech.dragonegghunt.state.EggState;
 import io.github.milkdrinkers.colorparser.paper.ColorParser;

@@ -1,7 +1,7 @@
 package com.lunatech.dragonegghunt.hook.vault;
 
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
 import com.lunatech.dragonegghunt.hook.Hook;
 import net.milkbowl.vault.chat.Chat;

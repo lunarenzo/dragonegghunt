@@ -1,7 +1,7 @@
 package com.lunatech.dragonegghunt.hook.bstats;
 
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
 import org.bstats.bukkit.Metrics;
 import org.jetbrains.annotations.ApiStatus;

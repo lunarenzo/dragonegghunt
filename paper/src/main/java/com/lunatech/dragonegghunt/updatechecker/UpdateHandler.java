@@ -1,7 +1,7 @@
 package com.lunatech.dragonegghunt.updatechecker;
 
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.utility.Cfg;
 import com.lunatech.dragonegghunt.utility.Logger;

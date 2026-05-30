@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.listener;
 
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

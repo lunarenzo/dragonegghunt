@@ -2,7 +2,7 @@ package com.lunatech.dragonegghunt.hook.packetevents;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
 import com.lunatech.dragonegghunt.hook.Hook;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;

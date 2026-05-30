@@ -1,7 +1,7 @@
 package com.lunatech.dragonegghunt.listener;
 
 import com.lunatech.dragonegghunt.AbstractExample;
-import com.lunatech.dragonegghunt.Example;
+import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import org.bukkit.event.Listener;
 
