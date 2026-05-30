@@ -48,7 +48,7 @@ public class DatabaseConfig implements VersionedConfig {
     public static class Database {
         @Comment("Available types: \"sqlite\", \"h2\", \"mysql\", \"mariadb\"")
         public DatabaseType type = DatabaseType.SQLITE;
-        public String tablePrefix = "example_";
+        public String tablePrefix = "dragonegghunt_";
 
         @Comment("Authentication")
         public String host = "localhost";
