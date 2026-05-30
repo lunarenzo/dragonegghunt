@@ -20,7 +20,7 @@ public class V5__dragon_egg_state extends BaseJavaMigration {
         final Connection connection = flywayContext.getConnection();
         final DSLContext context = MigrationUtils.getContext(connection);
 
-        context.execute("CREATE TABLE IF NOT EXISTS " + context.render(org.jooq.impl.DSL.name("dragon_egg_state")) + " (" +
+        context.execute("CREATE TABLE IF NOT EXISTS " + context.render(org.jooq.impl.DSL.table(org.jooq.impl.DSL.name("dragon_egg_state"))) + " (" +
             "id INTEGER NOT NULL PRIMARY KEY," +
             "state_type VARCHAR(50) NOT NULL," +
             "holder_uuid VARCHAR(36)," +
