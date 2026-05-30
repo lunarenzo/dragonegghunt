@@ -279,6 +279,11 @@ public class EggMovementListener implements Listener {
                 block.getY() == (int) Math.round(placed.y()) &&
                 block.getZ() == (int) Math.round(placed.z());
         }
+        if (block.getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
+            if (Math.abs(block.getX()) <= 3 && Math.abs(block.getZ()) <= 3 && block.getY() >= 50 && block.getY() <= 90) {
+                return true;
+            }
+        }
         return false;
     }
 
