@@ -47,10 +47,12 @@ public class EggMovementListener implements Listener {
 
     private final DragonEggHunt plugin;
     private final EggTrackerService eggTrackerService;
+    private org.bukkit.scheduler.BukkitTask validationTask;
 
     public EggMovementListener(DragonEggHunt plugin) {
         this.plugin = plugin;
         this.eggTrackerService = plugin.getEggTrackerService();
+        this.validationTask = Bukkit.getScheduler().runTaskTimer(plugin, this::validateAndCleanEggs, 60L, 60L);
     }
 
     private boolean checkScheduled = false;
@@ -223,7 +225,15 @@ public class EggMovementListener implements Listener {
 
         if (currentState instanceof EggState.Dropped dropped) {
             org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
+            boolean isLost = false;
             if (entity == null || !entity.isValid() || entity.isDead()) {
+                isLost = true;
+            } else if (entity.getLocation().getY() < entity.getWorld().getMinHeight() - 10) {
+                isLost = true;
+                entity.remove();
+            }
+
+            if (isLost) {
                 org.bukkit.World world = Bukkit.getWorld(dropped.worldName());
                 if (world != null) {
                     int chunkX = ((int) Math.floor(dropped.x())) >> 4;
@@ -785,5 +795,14 @@ public class EggMovementListener implements Listener {
             return held.holderUuid();
         }
         return null;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPluginDisable(org.bukkit.event.server.PluginDisableEvent event) {
+        if (event.getPlugin().equals(plugin)) {
+            if (validationTask != null) {
+                validationTask.cancel();
+            }
+        }
     }
 }
