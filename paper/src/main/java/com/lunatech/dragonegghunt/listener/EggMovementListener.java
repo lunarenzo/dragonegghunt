@@ -328,16 +328,50 @@ public class EggMovementListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPortalCreate(PortalCreateEvent event) {
-        for (org.bukkit.block.BlockState state : event.getBlocks()) {
-            if (state.getType() == Material.DRAGON_EGG) {
-                eggTrackerService.updateState(new EggState.Placed(
-                    state.getWorld().getName(),
-                    state.getX(),
-                    state.getY(),
-                    state.getZ()
-                ));
-                break;
-            }
+        if (event.getReason() == PortalCreateEvent.CreateReason.END_PORTAL) {
+            org.bukkit.block.BlockState firstState = event.getBlocks().isEmpty() ? null : event.getBlocks().get(0);
+            if (firstState == null) return;
+
+            org.bukkit.World world = firstState.getWorld();
+            // Schedule task 20 ticks later to allow structure to fully generate in the world
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                // The exit portal center is always at 0, 0 in the End dimension
+                int centerX = 0;
+                int centerZ = 0;
+
+                // Scan Y from 50 to 90 at center column
+                for (int y = 50; y < 90; y++) {
+                    Block b = world.getBlockAt(centerX, y, centerZ);
+                    if (b.getType() == Material.DRAGON_EGG) {
+                        eggTrackerService.updateState(new EggState.Placed(
+                            world.getName(),
+                            centerX,
+                            y,
+                            centerZ
+                        ));
+                        plugin.getComponentLogger().info("Dragon Egg detected and tracked at exit portal: " + centerX + ", " + y + ", " + centerZ);
+                        return;
+                    }
+                }
+
+                // Fallback: If for some reason exit portal is not at 0, 0, scan above the portal blocks
+                for (org.bukkit.block.BlockState state : event.getBlocks()) {
+                    Block b = world.getBlockAt(state.getX(), state.getY(), state.getZ());
+                    for (int dy = 0; dy <= 10; dy++) {
+                        Block target = b.getRelative(0, dy, 0);
+                        if (target.getType() == Material.DRAGON_EGG) {
+                            eggTrackerService.updateState(new EggState.Placed(
+                                target.getWorld().getName(),
+                                target.getX(),
+                                target.getY(),
+                                target.getZ()
+                            ));
+                            plugin.getComponentLogger().info("Dragon Egg detected and tracked via fallback scan at: " + target.getX() + ", " + target.getY() + ", " + target.getZ());
+                            return;
+                        }
+                    }
+                }
+            }, 20L);
         }
     }
 
