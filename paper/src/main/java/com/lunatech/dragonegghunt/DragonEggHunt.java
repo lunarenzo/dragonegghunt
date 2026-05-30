@@ -146,6 +146,9 @@ public class DragonEggHunt extends AbstractExample {
      * Use to reload the entire plugin.
      */
     public void onReload() {
+        if (configHandler != null && !configHandler.validateConfigs()) {
+            throw new IllegalArgumentException("Configuration file contains syntax or validation errors. Reload aborted.");
+        }
         try {
             Logger.get().info(ColorParser.of("<green>Reloading DragonEggHunt...").build());
             onDisable();

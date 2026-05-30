@@ -59,6 +59,31 @@ public class ConfigHandler implements Reloadable {
     }
 
     /**
+     * Validates that the configuration files can be successfully parsed.
+     *
+     * @return true if valid, false otherwise.
+     */
+    public boolean validateConfigs() {
+        PluginConfig loadedCfg = new ConfigLoader()
+            .withDirectory()
+            .withPath(configDir.resolve("config.yml"))
+            .withHeader("")
+            .build(PluginConfig.class);
+
+        DatabaseConfig loadedDbCfg = new ConfigLoader()
+            .withDirectory()
+            .withPath(configDir.resolve("database.yml"))
+            .withHeader("")
+            .withSerializer(b -> {
+                b.registerExact(StringListSerializer.TYPE_TOKEN, StringListSerializer.INSTANCE)
+                    .registerExact(StringObjectMapSerializer.TYPE_TOKEN, StringObjectMapSerializer.INSTANCE);
+            })
+            .build(DatabaseConfig.class);
+
+        return loadedCfg != null && loadedDbCfg != null;
+    }
+
+    /**
      * Gets main config object.
      *
      * @return the config object
