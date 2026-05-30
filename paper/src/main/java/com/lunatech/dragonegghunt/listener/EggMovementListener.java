@@ -417,8 +417,13 @@ public class EggMovementListener implements Listener {
     public void onBlockFromTo(BlockFromToEvent event) {
         Block block = event.getBlock();
         if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
-            // Cancel teleportation of the Alpha Egg to keep its location stable and prevent untracked movement
-            event.setCancelled(true);
+            Block toBlock = event.getToBlock();
+            eggTrackerService.updateState(new EggState.Placed(
+                toBlock.getWorld().getName(),
+                toBlock.getX(),
+                toBlock.getY(),
+                toBlock.getZ()
+            ));
         }
     }
 
@@ -639,6 +644,38 @@ public class EggMovementListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
         checkPossessionDelayed();
+
+        if (event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK || event.getAction() == org.bukkit.event.block.Action.LEFT_CLICK_BLOCK) {
+            Block block = event.getClickedBlock();
+            if (block != null && block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+                org.bukkit.Location origin = block.getLocation();
+                org.bukkit.World world = origin.getWorld();
+                if (world != null) {
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (world.getBlockAt(origin).getType() == Material.DRAGON_EGG) {
+                            return;
+                        }
+                        for (int dx = -8; dx <= 8; dx++) {
+                            for (int dy = -8; dy <= 8; dy++) {
+                                for (int dz = -8; dz <= 8; dz++) {
+                                    Block target = world.getBlockAt(origin.getBlockX() + dx, origin.getBlockY() + dy, origin.getBlockZ() + dz);
+                                    if (target.getType() == Material.DRAGON_EGG) {
+                                        eggTrackerService.updateState(new EggState.Placed(
+                                            world.getName(),
+                                            target.getX(),
+                                            target.getY(),
+                                            target.getZ()
+                                        ));
+                                        plugin.getComponentLogger().info("Dragon Egg teleport tracked at: " + target.getX() + ", " + target.getY() + ", " + target.getZ());
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }, 1L);
+                }
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
