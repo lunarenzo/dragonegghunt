@@ -179,17 +179,27 @@ public class EggMovementListener implements Listener {
     private void triggerPhoenixRespawn(String reasonEn, String reasonZh) {
         com.lunatech.dragonegghunt.config.PluginConfig.AltarLocation altar = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
         org.bukkit.World world = Bukkit.getWorld(altar.world);
+        org.bukkit.Location loc;
+
         if (world != null) {
-            org.bukkit.Location loc = new org.bukkit.Location(world, altar.x, altar.y, altar.z);
-            Block block = loc.getBlock();
-            block.setType(Material.DRAGON_EGG);
-            eggTrackerService.updateState(new EggState.Placed(altar.world, altar.x, altar.y, altar.z));
-            
-            String msg = plugin.getConfigHandler().getConfig().language.equals("zh_CN")
-                ? "§c龙蛋已被" + reasonZh + "吞噬，并已返回祭坛！"
-                : "§cThe Alpha Egg was consumed by " + reasonEn + " and has returned to the Altar!";
-            Bukkit.broadcastMessage(msg);
+            loc = new org.bukkit.Location(world, altar.x, altar.y, altar.z);
+        } else {
+            org.bukkit.World primaryWorld = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+            if (primaryWorld != null) {
+                loc = primaryWorld.getSpawnLocation();
+            } else {
+                return;
+            }
         }
+
+        Block block = loc.getBlock();
+        block.setType(Material.DRAGON_EGG);
+        eggTrackerService.updateState(new EggState.Placed(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ()));
+        
+        String msg = plugin.getConfigHandler().getConfig().language.equals("zh_CN")
+            ? "§c龙蛋已被" + reasonZh + "吞噬，并已返回祭坛！"
+            : "§cThe Alpha Egg was consumed by " + reasonEn + " and has returned to the Altar!";
+        Bukkit.broadcastMessage(msg);
     }
 
     private void validateAndCleanEggs() {
