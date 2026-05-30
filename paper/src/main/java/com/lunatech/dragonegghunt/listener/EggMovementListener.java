@@ -197,7 +197,7 @@ public class EggMovementListener implements Listener {
         eggTrackerService.updateState(new EggState.Placed(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ()));
         
         String reason = Translation.of("egghunt.reasons." + reasonKey);
-        Bukkit.broadcastMessage(
+        Bukkit.broadcast(
             ColorParser.of(Translation.of("egghunt.phoenix-respawn"))
                 .with("reason", reason != null ? reason : reasonKey)
                 .build()
@@ -542,7 +542,7 @@ public class EggMovementListener implements Listener {
                     itemEntity.getUniqueId()
                 ));
                 
-                Bukkit.broadcastMessage(Translation.as("egghunt.holder-quit-broadcast"));
+                Bukkit.broadcast(Translation.as("egghunt.holder-quit-broadcast"));
             }
         }
     }
