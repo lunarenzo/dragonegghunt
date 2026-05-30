@@ -226,8 +226,8 @@ public class EggMovementListener implements Listener {
             if (entity == null || !entity.isValid() || entity.isDead()) {
                 org.bukkit.World world = Bukkit.getWorld(dropped.worldName());
                 if (world != null) {
-                    int chunkX = ((int) Math.round(dropped.x())) >> 4;
-                    int chunkZ = ((int) Math.round(dropped.z())) >> 4;
+                    int chunkX = ((int) Math.floor(dropped.x())) >> 4;
+                    int chunkZ = ((int) Math.floor(dropped.z())) >> 4;
                     if (world.isChunkLoaded(chunkX, chunkZ)) {
                         triggerPhoenixRespawn("clear");
                         return;
@@ -275,9 +275,9 @@ public class EggMovementListener implements Listener {
         EggState state = eggTrackerService.getState();
         if (state instanceof EggState.Placed placed) {
             return block.getWorld().getName().equals(placed.worldName()) &&
-                block.getX() == (int) Math.round(placed.x()) &&
-                block.getY() == (int) Math.round(placed.y()) &&
-                block.getZ() == (int) Math.round(placed.z());
+                block.getX() == (int) Math.floor(placed.x()) &&
+                block.getY() == (int) Math.floor(placed.y()) &&
+                block.getZ() == (int) Math.floor(placed.z());
         }
         if (block.getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
             if (Math.abs(block.getX()) <= 3 && Math.abs(block.getZ()) <= 3 && block.getY() >= 50 && block.getY() <= 90) {
@@ -477,9 +477,9 @@ public class EggMovementListener implements Listener {
             for (Block block : blocks) {
                 if (block.getType() == Material.DRAGON_EGG &&
                     block.getWorld().getName().equals(placed.worldName()) &&
-                    block.getX() == (int) Math.round(placed.x()) &&
-                    block.getY() == (int) Math.round(placed.y()) &&
-                    block.getZ() == (int) Math.round(placed.z())) {
+                    block.getX() == (int) Math.floor(placed.x()) &&
+                    block.getY() == (int) Math.floor(placed.y()) &&
+                    block.getZ() == (int) Math.floor(placed.z())) {
                     
                     block.setType(Material.AIR);
                     

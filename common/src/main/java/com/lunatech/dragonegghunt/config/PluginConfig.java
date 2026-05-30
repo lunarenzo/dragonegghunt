@@ -76,7 +76,7 @@ public class PluginConfig implements VersionedConfig {
         public double x = 0.5;
 
         @Comment("The Y coordinate")
-        public double y = 65.0;
+        public double y = 68.0;
 
         @Comment("The Z coordinate")
         public double z = 0.5;
