@@ -23,42 +23,62 @@ public class TrackerBroadcastTask implements Runnable {
 
     @Override
     public void run() {
-        EggState state = eggTrackerService.getState();
-        Component message = null;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            EggState state = eggTrackerService.getState();
+            Component message = null;
 
-        if (state instanceof EggState.Held held) {
-            Player holder = Bukkit.getPlayer(held.holderUuid());
-            if (holder != null && holder.isOnline()) {
-                var loc = holder.getLocation();
-                message = ColorParser.of("<gold>Dragon Egg Holder: <yellow><player> <gray>(<white><x>, <y>, <z> in <world><gray>)")
-                    .with("player", holder.getName())
-                    .with("x", String.valueOf(loc.getBlockX()))
-                    .with("y", String.valueOf(loc.getBlockY()))
-                    .with("z", String.valueOf(loc.getBlockZ()))
-                    .with("world", loc.getWorld().getName())
-                    .build();
-            } else {
-                String offlineName = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
-                if (offlineName == null) {
-                    offlineName = "Unknown";
+            if (state instanceof EggState.Held held) {
+                Player holder = Bukkit.getPlayer(held.holderUuid());
+                if (holder != null && holder.isOnline()) {
+                    var loc = holder.getLocation();
+                    message = ColorParser.of("<gold>Dragon Egg Holder: <yellow><player> <gray>(<white><x>, <y>, <z> in <world><gray>)")
+                        .with("player", holder.getName())
+                        .with("x", String.valueOf(loc.getBlockX()))
+                        .with("y", String.valueOf(loc.getBlockY()))
+                        .with("z", String.valueOf(loc.getBlockZ()))
+                        .with("world", loc.getWorld().getName())
+                        .build();
+                } else {
+                    String offlineName = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
+                    if (offlineName == null) {
+                        offlineName = "Unknown";
+                    }
+                    message = ColorParser.of("<gold>Dragon Egg Holder: <yellow><player> <red>(Offline)")
+                        .with("player", offlineName)
+                        .build();
                 }
-                message = ColorParser.of("<gold>Dragon Egg Holder: <yellow><player> <red>(Offline)")
-                    .with("player", offlineName)
+            } else if (state instanceof EggState.Placed placed) {
+                message = ColorParser.of("<gold>Dragon Egg placed at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+                    .with("x", String.valueOf((int) placed.x()))
+                    .with("y", String.valueOf((int) placed.y()))
+                    .with("z", String.valueOf((int) placed.z()))
+                    .with("world", placed.worldName())
                     .build();
+            } else if (state instanceof EggState.Dropped dropped) {
+                org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
+                if (entity != null && entity.isValid() && !entity.isDead()) {
+                    var loc = entity.getLocation();
+                    message = ColorParser.of("<gold>Dragon Egg dropped at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+                        .with("x", String.valueOf(loc.getBlockX()))
+                        .with("y", String.valueOf(loc.getBlockY()))
+                        .with("z", String.valueOf(loc.getBlockZ()))
+                        .with("world", loc.getWorld().getName())
+                        .build();
+                } else {
+                    message = ColorParser.of("<gold>Dragon Egg dropped at: <yellow><x>, <y>, <z> <gray>in <white><world>")
+                        .with("x", String.valueOf((int) dropped.x()))
+                        .with("y", String.valueOf((int) dropped.y()))
+                        .with("z", String.valueOf((int) dropped.z()))
+                        .with("world", dropped.worldName())
+                        .build();
+                }
             }
-        } else if (state instanceof EggState.Placed placed) {
-            message = ColorParser.of("<gold>Dragon Egg placed at: <yellow><x>, <y>, <z> <gray>in <white><world>")
-                .with("x", String.valueOf((int) placed.x()))
-                .with("y", String.valueOf((int) placed.y()))
-                .with("z", String.valueOf((int) placed.z()))
-                .with("world", placed.worldName())
-                .build();
-        }
 
-        if (message != null) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.sendActionBar(message);
+            if (message != null) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.sendActionBar(message);
+                }
             }
-        }
+        });
     }
 }

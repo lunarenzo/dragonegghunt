@@ -18,9 +18,11 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -174,6 +176,22 @@ public class EggMovementListener implements Listener {
         }
     }
 
+    private void triggerPhoenixRespawn(String reasonEn, String reasonZh) {
+        com.lunatech.dragonegghunt.config.PluginConfig.AltarLocation altar = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
+        org.bukkit.World world = Bukkit.getWorld(altar.world);
+        if (world != null) {
+            org.bukkit.Location loc = new org.bukkit.Location(world, altar.x, altar.y, altar.z);
+            Block block = loc.getBlock();
+            block.setType(Material.DRAGON_EGG);
+            eggTrackerService.updateState(new EggState.Placed(altar.world, altar.x, altar.y, altar.z));
+            
+            String msg = plugin.getConfigHandler().getConfig().language.equals("zh_CN")
+                ? "§c龙蛋已被" + reasonZh + "吞噬，并已返回祭坛！"
+                : "§cThe Alpha Egg was consumed by " + reasonEn + " and has returned to the Altar!";
+            Bukkit.broadcastMessage(msg);
+        }
+    }
+
     private void validateAndCleanEggs() {
         UUID legitimateHolder = null;
         UUID trackedHolder = getHolderUuid();
@@ -186,8 +204,24 @@ public class EggMovementListener implements Listener {
 
         EggState currentState = eggTrackerService.getState();
         boolean isPlaced = currentState instanceof EggState.Placed;
+        boolean isDropped = currentState instanceof EggState.Dropped;
 
-        if (legitimateHolder == null && !isPlaced) {
+        if (currentState instanceof EggState.Dropped dropped) {
+            org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
+            if (entity == null || !entity.isValid() || entity.isDead()) {
+                org.bukkit.World world = Bukkit.getWorld(dropped.worldName());
+                if (world != null) {
+                    int chunkX = ((int) Math.round(dropped.x())) >> 4;
+                    int chunkZ = ((int) Math.round(dropped.z())) >> 4;
+                    if (world.isChunkLoaded(chunkX, chunkZ)) {
+                        triggerPhoenixRespawn("Clean/Clear", "清理");
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (legitimateHolder == null && !isPlaced && !isDropped) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (hasAlphaEgg(player)) {
                     legitimateHolder = player.getUniqueId();
@@ -253,6 +287,16 @@ public class EggMovementListener implements Listener {
     public void onDrop(PlayerDropItemEvent event) {
         Item itemEntity = event.getItemDrop();
         if (isAlphaEgg(itemEntity.getItemStack())) {
+            itemEntity.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+            
+            org.bukkit.Location loc = itemEntity.getLocation();
+            eggTrackerService.updateState(new EggState.Dropped(
+                loc.getWorld().getName(),
+                loc.getX(),
+                loc.getY(),
+                loc.getZ(),
+                itemEntity.getUniqueId()
+            ));
             checkPossessionDelayed();
         }
     }
@@ -479,13 +523,67 @@ public class EggMovementListener implements Listener {
                     meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
                     alphaEgg.setItemMeta(meta);
                 }
-                player.getWorld().dropItemNaturally(player.getLocation(), alphaEgg);
-                eggTrackerService.updateState(new EggState.Unheld());
+                Item itemEntity = player.getWorld().dropItemNaturally(player.getLocation(), alphaEgg);
+                itemEntity.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+                
+                eggTrackerService.updateState(new EggState.Dropped(
+                    itemEntity.getLocation().getWorld().getName(),
+                    itemEntity.getLocation().getX(),
+                    itemEntity.getLocation().getY(),
+                    itemEntity.getLocation().getZ(),
+                    itemEntity.getUniqueId()
+                ));
                 
                 Bukkit.broadcastMessage(plugin.getConfigHandler().getConfig().language.equals("zh_CN")
                     ? "§c持有者退出了游戏，龙蛋已被丢弃在原地！"
                     : "§cThe holder has logged out. The Dragon Egg was dropped at their location!");
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Item item) {
+            if (isAlphaEgg(item.getItemStack())) {
+                event.setCancelled(true);
+                item.remove();
+                
+                String reasonEn = "damage";
+                String reasonZh = "伤害";
+                switch (event.getCause()) {
+                    case LAVA -> {
+                        reasonEn = "Lava";
+                        reasonZh = "岩浆";
+                    }
+                    case FIRE, FIRE_TICK -> {
+                        reasonEn = "Fire";
+                        reasonZh = "火焰";
+                    }
+                    case CONTACT -> {
+                        reasonEn = "Cactus";
+                        reasonZh = "仙人掌";
+                    }
+                    case VOID -> {
+                        reasonEn = "Void";
+                        reasonZh = "虚空";
+                    }
+                    case ENTITY_EXPLOSION, BLOCK_EXPLOSION -> {
+                        reasonEn = "Explosion";
+                        reasonZh = "爆炸";
+                    }
+                }
+                triggerPhoenixRespawn(reasonEn, reasonZh);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemDespawn(ItemDespawnEvent event) {
+        Item item = event.getEntity();
+        if (isAlphaEgg(item.getItemStack())) {
+            event.setCancelled(true);
+            item.remove();
+            triggerPhoenixRespawn("Despawn", "消失");
         }
     }
 

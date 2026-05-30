@@ -13,5 +13,6 @@ public record EggStateData(
     @Nullable Double x,
     @Nullable Double y,
     @Nullable Double z,
-    @Nullable Long since
+    @Nullable Long since,
+    @Nullable UUID entityUuid
 ) {}

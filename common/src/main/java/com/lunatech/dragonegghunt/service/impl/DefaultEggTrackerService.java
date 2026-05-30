@@ -76,6 +76,13 @@ public class DefaultEggTrackerService implements EggTrackerService {
                             stateRef.set(new EggState.Unheld());
                         }
                     }
+                    case "DROPPED" -> {
+                        if (data.worldName() != null && data.x() != null && data.y() != null && data.z() != null && data.entityUuid() != null) {
+                            stateRef.set(new EggState.Dropped(data.worldName(), data.x(), data.y(), data.z(), data.entityUuid()));
+                        } else {
+                            stateRef.set(new EggState.Unheld());
+                        }
+                    }
                     default -> stateRef.set(new EggState.Unheld());
                 }
             } else {
@@ -93,11 +100,13 @@ public class DefaultEggTrackerService implements EggTrackerService {
         EggStateData data;
 
         if (current instanceof EggState.Held held) {
-            data = new EggStateData("HELD", held.holderUuid(), null, null, null, null, held.since());
+            data = new EggStateData("HELD", held.holderUuid(), null, null, null, null, held.since(), null);
         } else if (current instanceof EggState.Placed placed) {
-            data = new EggStateData("PLACED", null, placed.worldName(), placed.x(), placed.y(), placed.z(), null);
+            data = new EggStateData("PLACED", null, placed.worldName(), placed.x(), placed.y(), placed.z(), null, null);
+        } else if (current instanceof EggState.Dropped dropped) {
+            data = new EggStateData("DROPPED", null, dropped.worldName(), dropped.x(), dropped.y(), dropped.z(), null, dropped.entityUuid());
         } else {
-            data = new EggStateData("UNHELD", null, null, null, null, null, null);
+            data = new EggStateData("UNHELD", null, null, null, null, null, null, null);
         }
 
         // Save asynchronously to prevent blocking the main server thread

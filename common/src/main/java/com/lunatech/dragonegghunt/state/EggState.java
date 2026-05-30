@@ -12,5 +12,7 @@ public sealed interface EggState {
 
     record Placed(@NotNull String worldName, double x, double y, double z) implements EggState {}
 
+    record Dropped(@NotNull String worldName, double x, double y, double z, @NotNull UUID entityUuid) implements EggState {}
+
     record Unheld() implements EggState {}
 }

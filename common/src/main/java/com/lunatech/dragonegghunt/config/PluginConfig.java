@@ -62,6 +62,24 @@ public class PluginConfig implements VersionedConfig {
 
         @Comment("Should the Alpha Dragon Egg be allowed to be stored inside containers (chests, hoppers, dispensers, etc.)?")
         public boolean allowContainerStorage = false;
+
+        @Comment("The altar location where the Alpha Egg will respawn if destroyed or despawned")
+        public AltarLocation altarLocation = new AltarLocation();
+    }
+
+    @ConfigSerializable
+    public static class AltarLocation {
+        @Comment("The world name")
+        public String world = "world_the_end";
+
+        @Comment("The X coordinate")
+        public double x = 0.5;
+
+        @Comment("The Y coordinate")
+        public double y = 65.0;
+
+        @Comment("The Z coordinate")
+        public double z = 0.5;
     }
 }
 

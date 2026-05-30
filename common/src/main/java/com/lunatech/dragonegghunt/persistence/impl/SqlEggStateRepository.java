@@ -41,10 +41,12 @@ public class SqlEggStateRepository implements EggStateRepository {
             Double y = record.get(field(name("y")), Double.class);
             Double z = record.get(field(name("z")), Double.class);
             Long since = record.get(field(name("since")), Long.class);
+            String entityUuidStr = record.get(field(name("entity_uuid")), String.class);
 
             UUID holderUuid = holderUuidStr != null ? UUID.fromString(holderUuidStr) : null;
+            UUID entityUuid = entityUuidStr != null ? UUID.fromString(entityUuidStr) : null;
 
-            return Optional.of(new EggStateData(stateType, holderUuid, worldName, x, y, z, since));
+            return Optional.of(new EggStateData(stateType, holderUuid, worldName, x, y, z, since, entityUuid));
         } catch (SQLException e) {
             e.printStackTrace();
             return Optional.empty();
@@ -62,7 +64,7 @@ public class SqlEggStateRepository implements EggStateRepository {
                 .fetchOne(0, Integer.class);
             
             boolean exists = countObj != null && countObj > 0;
-
+ 
             if (exists) {
                 context.update(table(name("dragon_egg_state")))
                     .set(field(name("state_type")), data.stateType())
@@ -72,6 +74,7 @@ public class SqlEggStateRepository implements EggStateRepository {
                     .set(field(name("y")), data.y())
                     .set(field(name("z")), data.z())
                     .set(field(name("since")), data.since())
+                    .set(field(name("entity_uuid")), data.entityUuid() != null ? data.entityUuid().toString() : null)
                     .where(field(name("id")).eq(1))
                     .execute();
             } else {
@@ -84,6 +87,7 @@ public class SqlEggStateRepository implements EggStateRepository {
                     .set(field(name("y")), data.y())
                     .set(field(name("z")), data.z())
                     .set(field(name("since")), data.since())
+                    .set(field(name("entity_uuid")), data.entityUuid() != null ? data.entityUuid().toString() : null)
                     .execute();
             }
         } catch (SQLException e) {
