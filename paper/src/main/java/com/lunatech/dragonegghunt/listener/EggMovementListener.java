@@ -24,6 +24,8 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -519,6 +521,91 @@ public class EggMovementListener implements Listener {
         String msg = event.getCommand().toLowerCase();
         if (msg.contains("give") || msg.contains("clear") || msg.contains("replaceitem") || msg.contains("loot") || msg.contains("item")) {
             checkPossessionDelayed();
+        }
+    }
+
+    private boolean isAllowedInventory(org.bukkit.inventory.Inventory inventory) {
+        if (inventory == null) {
+            return true;
+        }
+        org.bukkit.event.inventory.InventoryType type = inventory.getType();
+        return type == org.bukkit.event.inventory.InventoryType.PLAYER ||
+               type == org.bukkit.event.inventory.InventoryType.CRAFTING ||
+               type == org.bukkit.event.inventory.InventoryType.WORKBENCH;
+     }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryClickContainer(InventoryClickEvent event) {
+        if (plugin.getConfigHandler().getConfig().dragonEggTracker.allowContainerStorage) {
+            return;
+        }
+
+        org.bukkit.inventory.Inventory topInventory = event.getView().getTopInventory();
+        if (topInventory == null || isAllowedInventory(topInventory)) {
+            return;
+        }
+
+        if (event.getClickedInventory() == topInventory) {
+            if (isAlphaEgg(event.getCursor())) {
+                event.setCancelled(true);
+                return;
+            }
+            if (event.getAction() == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP ||
+                event.getAction() == org.bukkit.event.inventory.InventoryAction.HOTBAR_MOVE_AND_READD) {
+                ItemStack hotbarItem = event.getWhoClicked().getInventory().getItem(event.getHotbarButton());
+                if (isAlphaEgg(hotbarItem)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
+        if (event.getClickedInventory() == event.getView().getBottomInventory() && event.isShiftClick()) {
+            if (isAlphaEgg(event.getCurrentItem())) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryDragContainer(InventoryDragEvent event) {
+        if (plugin.getConfigHandler().getConfig().dragonEggTracker.allowContainerStorage) {
+            return;
+        }
+
+        org.bukkit.inventory.Inventory topInventory = event.getView().getTopInventory();
+        if (topInventory == null || isAllowedInventory(topInventory)) {
+            return;
+        }
+
+        if (isAlphaEgg(event.getOldCursor())) {
+            for (int rawSlot : event.getRawSlots()) {
+                if (rawSlot < topInventory.getSize()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryMoveItem(InventoryMoveItemEvent event) {
+        if (plugin.getConfigHandler().getConfig().dragonEggTracker.allowContainerStorage) {
+            return;
+        }
+        if (isAlphaEgg(event.getItem())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryPickupItem(InventoryPickupItemEvent event) {
+        if (plugin.getConfigHandler().getConfig().dragonEggTracker.allowContainerStorage) {
+            return;
+        }
+        if (isAlphaEgg(event.getItem().getItemStack())) {
+            event.setCancelled(true);
         }
     }
 

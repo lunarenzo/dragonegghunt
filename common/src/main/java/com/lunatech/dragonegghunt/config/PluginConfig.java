@@ -59,6 +59,9 @@ public class PluginConfig implements VersionedConfig {
 
         @Comment("Should PvP bypass WorldGuard and other regional protections?")
         public boolean overrideRegionProtection = false;
+
+        @Comment("Should the Alpha Dragon Egg be allowed to be stored inside containers (chests, hoppers, dispensers, etc.)?")
+        public boolean allowContainerStorage = false;
     }
 }
 
