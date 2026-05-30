@@ -137,6 +137,62 @@ public class EggMovementListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onInventoryCreative(org.bukkit.event.inventory.InventoryCreativeEvent event) {
+        if (event.getWhoClicked() instanceof Player player) {
+            checkPossessionDelayed(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player player) {
+            checkPossessionDelayed(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        checkPossessionDelayed(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerCommand(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
+        String msg = event.getMessage().toLowerCase();
+        if (msg.contains("give") || msg.contains("clear") || msg.contains("replaceitem") || msg.contains("loot") || msg.contains("item")) {
+            checkAllPlayersDelayed();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onServerCommand(org.bukkit.event.server.ServerCommandEvent event) {
+        String msg = event.getCommand().toLowerCase();
+        if (msg.contains("give") || msg.contains("clear") || msg.contains("replaceitem") || msg.contains("loot") || msg.contains("item")) {
+            checkAllPlayersDelayed();
+        }
+    }
+
+    private void checkAllPlayersDelayed() {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                boolean hasEgg = player.getInventory().contains(Material.DRAGON_EGG)
+                    || (player.getItemOnCursor() != null && player.getItemOnCursor().getType() == Material.DRAGON_EGG);
+
+                UUID currentHolder = getHolderUuid();
+
+                if (hasEgg) {
+                    if (!player.getUniqueId().equals(currentHolder)) {
+                        eggTrackerService.updateState(new EggState.Held(player.getUniqueId(), System.currentTimeMillis()));
+                    }
+                } else {
+                    if (player.getUniqueId().equals(currentHolder)) {
+                        eggTrackerService.updateState(new EggState.Unheld());
+                    }
+                }
+            }
+        });
+    }
+
     private void checkPossessionDelayed(Player player) {
         Bukkit.getScheduler().runTask(plugin, () -> {
             boolean hasEgg = player.getInventory().contains(Material.DRAGON_EGG)
