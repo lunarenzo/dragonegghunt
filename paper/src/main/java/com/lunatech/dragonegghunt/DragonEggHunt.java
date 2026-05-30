@@ -146,9 +146,23 @@ public class DragonEggHunt extends AbstractExample {
      * Use to reload the entire plugin.
      */
     public void onReload() {
-        onDisable();
-        onLoad();
-        onEnable();
+        try {
+            Logger.get().info(ColorParser.of("<green>Reloading DragonEggHunt...").build());
+            onDisable();
+            onLoad();
+            onEnable();
+            Logger.get().info(ColorParser.of("<green>DragonEggHunt reloaded successfully.").build());
+        } catch (Throwable t) {
+            Logger.get().error(ColorParser.of("<red>Failed to reload DragonEggHunt! Safely disabling to prevent server crash or memory leak...").build());
+            t.printStackTrace();
+            try {
+                onDisable();
+            } catch (Throwable disableEx) {
+                // Suppress secondary disable exceptions
+            }
+            Bukkit.getPluginManager().disablePlugin(this);
+            throw new RuntimeException("Plugin reload failed: " + t.getMessage(), t);
+        }
     }
 
     @Override

@@ -40,6 +40,10 @@
       },
       "reset": {
         "success": "<green>Dragon Egg holder state has been reset to UNHELD."
+      },
+      "reload": {
+        "success": "<green>Successfully reloaded DragonEggHunt configuration and data!",
+        "failure": "<red>Failed to reload DragonEggHunt! Please check console logs."
       }
     }
   },

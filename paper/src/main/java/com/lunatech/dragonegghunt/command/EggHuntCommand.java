@@ -51,7 +51,11 @@ public class EggHuntCommand extends Command {
                     .executes(this::executorOverride),
                 new CommandAPICommand("reset")
                     .withHelp("Reset the Dragon Egg state to UNHELD.", "Reset the Dragon Egg state to UNHELD.")
-                    .executes(this::executorReset)
+                    .executes(this::executorReset),
+                new CommandAPICommand("reload")
+                    .withHelp("Reload the plugin configuration and data safely.", "Reload the plugin configuration and data safely.")
+                    .withPermission(BASE_PERM + ".reload")
+                    .executes(this::executorReload)
             )
             .executes(this::executorInfo);
     }
@@ -116,5 +120,14 @@ public class EggHuntCommand extends Command {
     private void executorReset(CommandSender sender, CommandArguments args) {
         eggTrackerService.updateState(new EggState.Unheld());
         sender.sendMessage(Translation.as("commands.egghunt.reset.success"));
+    }
+
+    private void executorReload(CommandSender sender, CommandArguments args) {
+        try {
+            plugin.onReload();
+            sender.sendMessage(Translation.as("commands.egghunt.reload.success"));
+        } catch (Exception e) {
+            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+        }
     }
 }
