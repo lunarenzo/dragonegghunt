@@ -8,6 +8,7 @@ import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import com.lunatech.dragonegghunt.state.EggState;
 import io.github.milkdrinkers.colorparser.paper.ColorParser;
+import io.github.milkdrinkers.threadutil.Scheduler;
 import io.github.milkdrinkers.wordweaver.Translation;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -137,38 +138,74 @@ public class EggHuntCommand extends Command {
     }
 
     private void executorReload(CommandSender sender, CommandArguments args) {
-        try {
-            plugin.onReload();
-            sender.sendMessage(Translation.as("commands.egghunt.reload.success"));
-        } catch (Exception e) {
-            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
-        }
+        Scheduler.async(() -> {
+            try {
+                plugin.onReload();
+                return true;
+            } catch (Exception e) {
+                plugin.getComponentLogger().error("Failed to reload DragonEggHunt:", e);
+                return false;
+            }
+        }).sync(success -> {
+            if (success) {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.success"));
+            } else {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+            }
+        }).execute();
     }
 
     private void executorReloadConfig(CommandSender sender, CommandArguments args) {
-        try {
-            plugin.reloadConfigOnly();
-            sender.sendMessage(Translation.as("commands.egghunt.reload.config-success"));
-        } catch (Exception e) {
-            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
-        }
+        Scheduler.async(() -> {
+            try {
+                plugin.reloadConfigOnly();
+                return true;
+            } catch (Exception e) {
+                plugin.getComponentLogger().error("Failed to reload DragonEggHunt config:", e);
+                return false;
+            }
+        }).sync(success -> {
+            if (success) {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.config-success"));
+            } else {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+            }
+        }).execute();
     }
 
     private void executorReloadLang(CommandSender sender, CommandArguments args) {
-        try {
-            plugin.reloadLangOnly();
-            sender.sendMessage(Translation.as("commands.egghunt.reload.lang-success"));
-        } catch (Exception e) {
-            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
-        }
+        Scheduler.async(() -> {
+            try {
+                plugin.reloadLangOnly();
+                return true;
+            } catch (Exception e) {
+                plugin.getComponentLogger().error("Failed to reload DragonEggHunt translations:", e);
+                return false;
+            }
+        }).sync(success -> {
+            if (success) {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.lang-success"));
+            } else {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+            }
+        }).execute();
     }
 
     private void executorReloadDatabase(CommandSender sender, CommandArguments args) {
-        try {
-            plugin.reloadDatabaseOnly();
-            sender.sendMessage(Translation.as("commands.egghunt.reload.database-success"));
-        } catch (Exception e) {
-            sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
-        }
+        Scheduler.async(() -> {
+            try {
+                plugin.reloadDatabaseOnly();
+                return true;
+            } catch (Exception e) {
+                plugin.getComponentLogger().error("Failed to reload DragonEggHunt database/messaging:", e);
+                return false;
+            }
+        }).sync(success -> {
+            if (success) {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.database-success"));
+            } else {
+                sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
+            }
+        }).execute();
     }
 }
