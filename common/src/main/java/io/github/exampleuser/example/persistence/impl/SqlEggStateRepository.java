@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.table;
 
 /**
  * SQL-backed implementation of EggStateRepository.
@@ -25,7 +26,7 @@ public class SqlEggStateRepository implements EggStateRepository {
         try (Connection con = DB.getConnection()) {
             DSLContext context = DB.getContext(con);
             Record record = context.select()
-                .from(name("dragon_egg_state"))
+                .from(table(name("dragon_egg_state")))
                 .where(field(name("id")).eq(1))
                 .fetchOne();
 
@@ -56,14 +57,14 @@ public class SqlEggStateRepository implements EggStateRepository {
             DSLContext context = DB.getContext(con);
             
             Integer countObj = context.selectCount()
-                .from(name("dragon_egg_state"))
+                .from(table(name("dragon_egg_state")))
                 .where(field(name("id")).eq(1))
                 .fetchOne(0, Integer.class);
             
             boolean exists = countObj != null && countObj > 0;
 
             if (exists) {
-                context.update(name("dragon_egg_state"))
+                context.update(table(name("dragon_egg_state")))
                     .set(field(name("state_type")), data.stateType())
                     .set(field(name("holder_uuid")), data.holderUuid() != null ? data.holderUuid().toString() : null)
                     .set(field(name("world_name")), data.worldName())
@@ -74,7 +75,7 @@ public class SqlEggStateRepository implements EggStateRepository {
                     .where(field(name("id")).eq(1))
                     .execute();
             } else {
-                context.insertInto(name("dragon_egg_state"))
+                context.insertInto(table(name("dragon_egg_state")))
                     .set(field(name("id")), 1)
                     .set(field(name("state_type")), data.stateType())
                     .set(field(name("holder_uuid")), data.holderUuid() != null ? data.holderUuid().toString() : null)
