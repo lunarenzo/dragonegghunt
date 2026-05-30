@@ -89,8 +89,9 @@ public class Example extends AbstractExample {
         Messaging.init(messagingHandler);
 
         // Initialize Egg tracker state & repository
-        io.github.exampleuser.example.data.repository.EggStateRepository eggRepository = new io.github.exampleuser.example.data.repository.impl.SqlEggStateRepository();
+        io.github.exampleuser.example.persistence.EggStateRepository eggRepository = new io.github.exampleuser.example.persistence.impl.SqlEggStateRepository();
         this.eggTrackerService = new io.github.exampleuser.example.service.impl.DefaultEggTrackerService(eggRepository);
+
 
         for (Reloadable handler : handlers)
             handler.onLoad(instance);

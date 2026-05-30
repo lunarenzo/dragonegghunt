@@ -1,6 +1,5 @@
-package io.github.exampleuser.example.data.repository;
+package io.github.exampleuser.example.persistence;
 
-import io.github.exampleuser.example.data.model.EggStateData;
 import org.jetbrains.annotations.NotNull;
 
 /**

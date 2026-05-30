@@ -1,7 +1,7 @@
-package io.github.exampleuser.example.data.repository.impl;
+package io.github.exampleuser.example.persistence.impl;
 
-import io.github.exampleuser.example.data.model.EggStateData;
-import io.github.exampleuser.example.data.repository.EggStateRepository;
+import io.github.exampleuser.example.persistence.EggStateData;
+import io.github.exampleuser.example.persistence.EggStateRepository;
 import io.github.exampleuser.example.utility.DB;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;

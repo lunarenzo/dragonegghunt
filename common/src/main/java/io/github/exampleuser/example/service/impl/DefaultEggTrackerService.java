@@ -1,7 +1,7 @@
 package io.github.exampleuser.example.service.impl;
 
-import io.github.exampleuser.example.data.model.EggStateData;
-import io.github.exampleuser.example.data.repository.EggStateRepository;
+import io.github.exampleuser.example.persistence.EggStateData;
+import io.github.exampleuser.example.persistence.EggStateRepository;
 import io.github.exampleuser.example.service.EggTrackerService;
 import io.github.exampleuser.example.state.EggState;
 import org.jetbrains.annotations.NotNull;

@@ -1,4 +1,4 @@
-package io.github.exampleuser.example.data.model;
+package io.github.exampleuser.example.persistence;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.UUID;

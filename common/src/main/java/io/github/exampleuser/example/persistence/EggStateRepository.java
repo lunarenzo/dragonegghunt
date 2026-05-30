@@ -1,4 +1,4 @@
-package io.github.exampleuser.example.data.repository;
+package io.github.exampleuser.example.persistence;
 
 /**
  * Combined repository interface for the Dragon Egg state.
