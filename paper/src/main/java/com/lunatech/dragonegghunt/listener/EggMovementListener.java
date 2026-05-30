@@ -20,6 +20,8 @@ import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.entity.EnderDragon;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -326,52 +328,45 @@ public class EggMovementListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onPortalCreate(PortalCreateEvent event) {
-        if (event.getReason() == PortalCreateEvent.CreateReason.END_PORTAL) {
-            org.bukkit.block.BlockState firstState = event.getBlocks().isEmpty() ? null : event.getBlocks().get(0);
-            if (firstState == null) return;
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onDragonDeath(EntityDeathEvent event) {
+        if (event.getEntity() instanceof EnderDragon) {
+            org.bukkit.World world = event.getEntity().getWorld();
 
-            org.bukkit.World world = firstState.getWorld();
-            // Schedule task 20 ticks later to allow structure to fully generate in the world
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                // The exit portal center is always at 0, 0 in the End dimension
-                int centerX = 0;
-                int centerZ = 0;
+            // Exit portal is always at (0, 0) in the End world where the fight occurs.
+            // Check every 20 ticks (1 second) for 15 seconds (15 runs)
+            new org.bukkit.scheduler.BukkitRunnable() {
+                private int runs = 0;
 
-                // Scan Y from 50 to 90 at center column
-                for (int y = 50; y < 90; y++) {
-                    Block b = world.getBlockAt(centerX, y, centerZ);
-                    if (b.getType() == Material.DRAGON_EGG) {
-                        eggTrackerService.updateState(new EggState.Placed(
-                            world.getName(),
-                            centerX,
-                            y,
-                            centerZ
-                        ));
-                        plugin.getComponentLogger().info("Dragon Egg detected and tracked at exit portal: " + centerX + ", " + y + ", " + centerZ);
+                @Override
+                public void run() {
+                    runs++;
+                    if (runs > 15) {
+                        this.cancel();
                         return;
                     }
-                }
 
-                // Fallback: If for some reason exit portal is not at 0, 0, scan above the portal blocks
-                for (org.bukkit.block.BlockState state : event.getBlocks()) {
-                    Block b = world.getBlockAt(state.getX(), state.getY(), state.getZ());
-                    for (int dy = 0; dy <= 10; dy++) {
-                        Block target = b.getRelative(0, dy, 0);
-                        if (target.getType() == Material.DRAGON_EGG) {
-                            eggTrackerService.updateState(new EggState.Placed(
-                                target.getWorld().getName(),
-                                target.getX(),
-                                target.getY(),
-                                target.getZ()
-                            ));
-                            plugin.getComponentLogger().info("Dragon Egg detected and tracked via fallback scan at: " + target.getX() + ", " + target.getY() + ", " + target.getZ());
-                            return;
+                    // Scan a small area around (0,0) where the portal structure generates
+                    for (int x = -5; x <= 5; x++) {
+                        for (int z = -5; z <= 5; z++) {
+                            for (int y = 50; y < 90; y++) {
+                                Block b = world.getBlockAt(x, y, z);
+                                if (b.getType() == Material.DRAGON_EGG) {
+                                    eggTrackerService.updateState(new EggState.Placed(
+                                        world.getName(),
+                                        x,
+                                        y,
+                                        z
+                                    ));
+                                    plugin.getComponentLogger().info("Dragon Egg detected and tracked at exit portal area: " + x + ", " + y + ", " + z);
+                                    this.cancel();
+                                    return;
+                                }
+                            }
                         }
                     }
                 }
-            }, 20L);
+            }.runTaskTimer(plugin, 100L, 20L); // Start checking after 5 seconds, poll every 1 second
         }
     }
 
