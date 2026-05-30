@@ -122,7 +122,7 @@ public class Example extends AbstractExample {
         int interval = configHandler.getConfig().dragonEggTracker.broadcastInterval;
         if (interval > 0) {
             space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
-            broadcastTask = morePaperLib.scheduling().globalRegionalScheduler().runAtFixedRate(
+            broadcastTask = morePaperLib.scheduling().asyncScheduler().runAtFixedRate(
                 new io.github.exampleuser.example.task.TrackerBroadcastTask(this),
                 20L,
                 interval
