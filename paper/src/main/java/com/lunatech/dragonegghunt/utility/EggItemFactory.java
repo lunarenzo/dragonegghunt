@@ -32,13 +32,13 @@ public final class EggItemFactory {
             meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, PersistentDataType.INTEGER, 1);
 
             if (settings.eggDisplayName != null && !settings.eggDisplayName.isEmpty()) {
-                meta.displayName(ColorParser.of(settings.eggDisplayName).build());
+                meta.displayName(ColorParser.of("<!italic>" + settings.eggDisplayName).build());
             }
 
             if (settings.eggLore != null && !settings.eggLore.isEmpty()) {
                 List<Component> loreComponents = new ArrayList<>();
                 for (String line : settings.eggLore) {
-                    loreComponents.add(ColorParser.of(line).build());
+                    loreComponents.add(ColorParser.of("<!italic>" + line).build());
                 }
                 meta.lore(loreComponents);
             }

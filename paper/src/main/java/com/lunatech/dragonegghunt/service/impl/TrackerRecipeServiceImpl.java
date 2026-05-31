@@ -146,13 +146,13 @@ public class TrackerRecipeServiceImpl implements TrackerRecipeService {
             meta.getPersistentDataContainer().set(trackerKey, PersistentDataType.BYTE, (byte) 1);
             
             if (settings.displayName != null && !settings.displayName.isEmpty()) {
-                meta.displayName(ColorParser.of(settings.displayName).build());
+                meta.displayName(ColorParser.of("<!italic>" + settings.displayName).build());
             }
             
             if (settings.lore != null && !settings.lore.isEmpty()) {
                 List<Component> loreComponents = new ArrayList<>();
                 for (String line : settings.lore) {
-                    loreComponents.add(ColorParser.of(line).build());
+                    loreComponents.add(ColorParser.of("<!italic>" + line).build());
                 }
                 meta.lore(loreComponents);
             }
