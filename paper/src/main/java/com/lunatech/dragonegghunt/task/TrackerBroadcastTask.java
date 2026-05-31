@@ -27,11 +27,13 @@ public class TrackerBroadcastTask implements Runnable {
         Bukkit.getScheduler().runTask(plugin, () -> {
             EggState state = eggTrackerService.getState();
             Component message = null;
+            org.bukkit.Location targetLoc = null;
 
             if (state instanceof EggState.Held held) {
                 Player holder = Bukkit.getPlayer(held.holderUuid());
                 if (holder != null && holder.isOnline()) {
                     var loc = holder.getLocation();
+                    targetLoc = loc;
                     message = ColorParser.of(Translation.of("egghunt.actionbar.held-online"))
                         .with("player", holder.getName())
                         .with("x", String.valueOf(loc.getBlockX()))
@@ -49,6 +51,10 @@ public class TrackerBroadcastTask implements Runnable {
                         .build();
                 }
             } else if (state instanceof EggState.Placed placed) {
+                org.bukkit.World world = Bukkit.getWorld(placed.worldName());
+                if (world != null) {
+                    targetLoc = new org.bukkit.Location(world, placed.x(), placed.y(), placed.z());
+                }
                 message = ColorParser.of(Translation.of("egghunt.actionbar.placed"))
                     .with("x", String.valueOf((int) placed.x()))
                     .with("y", String.valueOf((int) placed.y()))
@@ -59,6 +65,7 @@ public class TrackerBroadcastTask implements Runnable {
                 org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
                 if (entity != null && entity.isValid() && !entity.isDead()) {
                     var loc = entity.getLocation();
+                    targetLoc = loc;
                     message = ColorParser.of(Translation.of("egghunt.actionbar.dropped"))
                         .with("x", String.valueOf(loc.getBlockX()))
                         .with("y", String.valueOf(loc.getBlockY()))
@@ -66,6 +73,10 @@ public class TrackerBroadcastTask implements Runnable {
                         .with("world", loc.getWorld().getName())
                         .build();
                 } else {
+                    org.bukkit.World world = Bukkit.getWorld(dropped.worldName());
+                    if (world != null) {
+                        targetLoc = new org.bukkit.Location(world, dropped.x(), dropped.y(), dropped.z());
+                    }
                     message = ColorParser.of(Translation.of("egghunt.actionbar.dropped"))
                         .with("x", String.valueOf((int) dropped.x()))
                         .with("y", String.valueOf((int) dropped.y()))
@@ -75,11 +86,44 @@ public class TrackerBroadcastTask implements Runnable {
                 }
             }
 
-            if (message != null) {
+            String trackingMethod = plugin.getConfigHandler().getConfig().dragonEggTracker.trackingMethod;
+            boolean doCompass = "COMPASS".equalsIgnoreCase(trackingMethod) || "BOTH".equalsIgnoreCase(trackingMethod);
+            boolean doActionBar = "ACTIONBAR".equalsIgnoreCase(trackingMethod) || "BOTH".equalsIgnoreCase(trackingMethod);
+
+            if (doCompass && targetLoc != null) {
+                com.lunatech.dragonegghunt.service.TrackerRecipeService recipeService = plugin.getTrackerRecipeService();
                 for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player == null) continue;
+                    org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+                    org.bukkit.inventory.ItemStack mainHand = inv.getItemInMainHand();
+                    org.bukkit.inventory.ItemStack offHand = inv.getItemInOffHand();
+
+                    if (recipeService.isTrackerCompass(mainHand)) {
+                        updateCompassItem(mainHand, targetLoc);
+                        inv.setItemInMainHand(mainHand);
+                    }
+                    if (recipeService.isTrackerCompass(offHand)) {
+                        updateCompassItem(offHand, targetLoc);
+                        inv.setItemInOffHand(offHand);
+                    }
+                }
+            }
+
+            if (doActionBar && message != null) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player == null) continue;
                     player.sendActionBar(message);
                 }
             }
         });
+    }
+
+    private void updateCompassItem(org.bukkit.inventory.ItemStack compass, org.bukkit.Location targetLoc) {
+        org.bukkit.inventory.meta.ItemMeta meta = compass.getItemMeta();
+        if (meta instanceof org.bukkit.inventory.meta.CompassMeta compassMeta) {
+            compassMeta.setLodestone(targetLoc);
+            compassMeta.setLodestoneTracked(false);
+            compass.setItemMeta(compassMeta);
+        }
     }
 }

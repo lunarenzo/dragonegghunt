@@ -65,6 +65,40 @@ public class PluginConfig implements VersionedConfig {
 
         @Comment("The altar location where the Alpha Egg will respawn if destroyed or despawned")
         public AltarLocation altarLocation = new AltarLocation();
+
+        @Comment("Tracking feedback method: COMPASS, ACTIONBAR, BOTH, or NONE")
+        public String trackingMethod = "BOTH";
+
+        @Comment("Compass tracker item settings")
+        public CompassTracker compassTracker = new CompassTracker();
+    }
+
+    @ConfigSerializable
+    public static class CompassTracker {
+        @Comment("Is the custom compass tracker item enabled and craftable?")
+        public boolean enabled = true;
+
+        @Comment("Custom crafting recipe layout shape (3 rows, spaces represent empty slots)")
+        public java.util.List<String> shape = java.util.List.of(
+            " E ",
+            "ECE",
+            " E "
+        );
+
+        @Comment("Ingredients mapping for the recipe shape")
+        public java.util.Map<String, String> ingredients = java.util.Map.of(
+            "E", "ENDER_EYE",
+            "C", "COMPASS"
+        );
+
+        @Comment("Display name of the custom compass tracker item")
+        public String displayName = "<gold>Alpha Egg Tracker";
+
+        @Comment("Lore of the custom compass tracker item")
+        public java.util.List<String> lore = java.util.List.of(
+            "<gray>Points towards the Alpha Dragon Egg.",
+            "<red>Active when held in hand."
+        );
     }
 
     @ConfigSerializable

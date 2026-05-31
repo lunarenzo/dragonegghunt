@@ -44,6 +44,7 @@ public class DragonEggHunt extends AbstractExample {
     private List<? extends Reloadable> handlers;
 
     private com.lunatech.dragonegghunt.service.EggTrackerService eggTrackerService;
+    private com.lunatech.dragonegghunt.service.TrackerRecipeService trackerRecipeService;
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
 
 
@@ -94,6 +95,7 @@ public class DragonEggHunt extends AbstractExample {
         // Initialize Egg tracker state & repository
         com.lunatech.dragonegghunt.persistence.EggStateRepository eggRepository = new com.lunatech.dragonegghunt.persistence.impl.SqlEggStateRepository();
         this.eggTrackerService = new com.lunatech.dragonegghunt.service.impl.DefaultEggTrackerService(eggRepository);
+        this.trackerRecipeService = new com.lunatech.dragonegghunt.service.impl.TrackerRecipeServiceImpl(this);
 
 
         for (Reloadable handler : handlers)
@@ -121,6 +123,11 @@ public class DragonEggHunt extends AbstractExample {
         eggTrackerService.loadState();
         eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
 
+        // Register custom compass tracker recipe
+        if (trackerRecipeService != null) {
+            trackerRecipeService.registerRecipe();
+        }
+
         // Start repeating broadcast task
         int interval = configHandler.getConfig().dragonEggTracker.broadcastInterval;
         if (interval > 0) {
@@ -138,6 +145,9 @@ public class DragonEggHunt extends AbstractExample {
         if (broadcastTask != null) {
             broadcastTask.cancel();
         }
+        if (trackerRecipeService != null) {
+            trackerRecipeService.unregisterRecipe();
+        }
         for (Reloadable handler : handlers.reversed()) // If reverse doesn't work implement a new List with your desired disable order
             handler.onDisable(instance);
     }
@@ -154,6 +164,9 @@ public class DragonEggHunt extends AbstractExample {
         }
         if (eggTrackerService != null && configHandler != null) {
             eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
+        }
+        if (trackerRecipeService != null) {
+            trackerRecipeService.registerRecipe();
         }
         if (configHandler != null) {
             if (broadcastTask != null) {
@@ -243,5 +256,9 @@ public class DragonEggHunt extends AbstractExample {
     @Override
     public @NotNull com.lunatech.dragonegghunt.service.EggTrackerService getEggTrackerService() {
         return eggTrackerService;
+    }
+
+    public @NotNull com.lunatech.dragonegghunt.service.TrackerRecipeService getTrackerRecipeService() {
+        return trackerRecipeService;
     }
 }
