@@ -458,6 +458,18 @@ public class EggMovementListener implements Listener {
             if (itemEntity.getItemStack().getType() == Material.DRAGON_EGG) {
                 ItemStack alphaEgg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
                 itemEntity.setItemStack(alphaEgg);
+                
+                // Track item entity PDC tag
+                itemEntity.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+
+                org.bukkit.Location loc = itemEntity.getLocation();
+                eggTrackerService.updateState(new EggState.Dropped(
+                    loc.getWorld().getName(),
+                    loc.getX(),
+                    loc.getY(),
+                    loc.getZ(),
+                    itemEntity.getUniqueId()
+                ));
             }
         }
     }
