@@ -31,6 +31,10 @@ public class TrackerRecipeServiceImpl implements TrackerRecipeService {
 
     @Override
     public void registerRecipe() {
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, this::registerRecipe);
+            return;
+        }
         unregisterRecipe();
 
         PluginConfig.CompassTracker settings = plugin.getConfigHandler().getConfig().dragonEggTracker.compassTracker;
@@ -108,6 +112,10 @@ public class TrackerRecipeServiceImpl implements TrackerRecipeService {
 
     @Override
     public void unregisterRecipe() {
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, this::unregisterRecipe);
+            return;
+        }
         try {
             if (Bukkit.getRecipe(recipeKey) != null) {
                 Bukkit.removeRecipe(recipeKey);
