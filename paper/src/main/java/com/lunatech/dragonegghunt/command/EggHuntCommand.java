@@ -102,12 +102,7 @@ public class EggHuntCommand extends Command {
         }
 
         // Add tagged Alpha Egg to inventory
-        ItemStack egg = new ItemStack(Material.DRAGON_EGG);
-        org.bukkit.inventory.meta.ItemMeta meta = egg.getItemMeta();
-        if (meta != null) {
-            meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
-            egg.setItemMeta(meta);
-        }
+        ItemStack egg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
         target.getInventory().addItem(egg);
         eggTrackerService.updateState(new EggState.Held(target.getUniqueId(), System.currentTimeMillis()));
 

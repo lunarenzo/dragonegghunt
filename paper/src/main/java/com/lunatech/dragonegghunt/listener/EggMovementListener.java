@@ -391,12 +391,7 @@ public class EggMovementListener implements Listener {
         if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
             event.setDropItems(false);
             
-            ItemStack alphaEgg = new ItemStack(Material.DRAGON_EGG);
-            org.bukkit.inventory.meta.ItemMeta meta = alphaEgg.getItemMeta();
-            if (meta != null) {
-                meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
-                alphaEgg.setItemMeta(meta);
-            }
+            ItemStack alphaEgg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
             block.getWorld().dropItemNaturally(block.getLocation(), alphaEgg);
             
             eggTrackerService.updateState(new EggState.Unheld());
@@ -493,12 +488,7 @@ public class EggMovementListener implements Listener {
                     
                     block.setType(Material.AIR);
                     
-                    ItemStack alphaEgg = new ItemStack(Material.DRAGON_EGG);
-                    org.bukkit.inventory.meta.ItemMeta meta = alphaEgg.getItemMeta();
-                    if (meta != null) {
-                        meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
-                        alphaEgg.setItemMeta(meta);
-                    }
+                    ItemStack alphaEgg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
                     block.getWorld().dropItemNaturally(block.getLocation(), alphaEgg);
                     
                     eggTrackerService.updateState(new EggState.Unheld());
@@ -585,12 +575,7 @@ public class EggMovementListener implements Listener {
             }
             
             if (dropped) {
-                ItemStack alphaEgg = new ItemStack(Material.DRAGON_EGG);
-                org.bukkit.inventory.meta.ItemMeta meta = alphaEgg.getItemMeta();
-                if (meta != null) {
-                    meta.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
-                    alphaEgg.setItemMeta(meta);
-                }
+                ItemStack alphaEgg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
                 Item itemEntity = player.getWorld().dropItemNaturally(player.getLocation(), alphaEgg);
                 itemEntity.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
                 

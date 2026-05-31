@@ -72,6 +72,15 @@ public class PluginConfig implements VersionedConfig {
         @Comment("Should the ActionBar message be shown ONLY to players holding the tracker compass? (If false, it is broadcast to everyone if actionbar is enabled)")
         public boolean actionbarOnlyForHolders = false;
 
+        @Comment("Display name of the Alpha Dragon Egg item")
+        public String eggDisplayName = "<light_purple><bold>Alpha Dragon Egg";
+
+        @Comment("Lore of the Alpha Dragon Egg item")
+        public java.util.List<String> eggLore = java.util.List.of(
+            "<gray>The legendary egg being hunted.",
+            "<red>Keep it safe!"
+        );
+
         @Comment("Compass tracker item settings")
         public CompassTracker compassTracker = new CompassTracker();
     }
