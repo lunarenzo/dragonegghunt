@@ -47,7 +47,29 @@ public class TrackerRecipeServiceImpl implements TrackerRecipeService {
             return;
         }
 
-        recipe.shape(shapeList.toArray(new String[0]));
+        int maxLen = 0;
+        for (String row : shapeList) {
+            if (row != null && row.length() > maxLen) {
+                maxLen = row.length();
+            }
+        }
+        if (maxLen == 0 || maxLen > 3) {
+            plugin.getComponentLogger().warn("Tracker recipe shape has invalid row length (must be between 1 and 3).");
+            return;
+        }
+
+        List<String> rectangularShape = new ArrayList<>();
+        for (String row : shapeList) {
+            if (row == null) {
+                row = "";
+            }
+            if (row.length() < maxLen) {
+                row = String.format("%-" + maxLen + "s", row);
+            }
+            rectangularShape.add(row);
+        }
+
+        recipe.shape(rectangularShape.toArray(new String[0]));
 
         boolean hasIngredients = false;
         for (Map.Entry<String, String> entry : settings.ingredients.entrySet()) {
