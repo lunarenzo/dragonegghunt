@@ -87,7 +87,7 @@ public class EggHuntCommand extends Command {
                 .with("x", String.valueOf((int) placed.x()))
                 .with("y", String.valueOf((int) placed.y()))
                 .with("z", String.valueOf((int) placed.z()))
-                .with("world", placed.worldName())
+                .with("world", com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, placed.worldName()))
                 .build());
         } else {
             sender.sendMessage(Translation.as("commands.egghunt.info.unheld"));

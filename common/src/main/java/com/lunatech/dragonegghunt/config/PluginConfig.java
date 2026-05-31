@@ -81,6 +81,13 @@ public class PluginConfig implements VersionedConfig {
             "<red>Keep it safe!"
         );
 
+        @Comment("Custom world display names (mappings from raw world folder name to custom name)")
+        public java.util.Map<String, String> worldDisplayNameMapping = java.util.Map.of(
+            "world", "Overworld",
+            "world_nether", "The Nether",
+            "world_the_end", "The End"
+        );
+
         @Comment("Compass tracker item settings")
         public CompassTracker compassTracker = new CompassTracker();
     }

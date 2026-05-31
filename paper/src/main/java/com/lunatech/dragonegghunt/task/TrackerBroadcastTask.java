@@ -39,7 +39,7 @@ public class TrackerBroadcastTask implements Runnable {
                         .with("x", String.valueOf(loc.getBlockX()))
                         .with("y", String.valueOf(loc.getBlockY()))
                         .with("z", String.valueOf(loc.getBlockZ()))
-                        .with("world", loc.getWorld().getName())
+                        .with("world", com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, loc.getWorld().getName()))
                         .build();
                 } else {
                     String offlineName = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
@@ -59,7 +59,7 @@ public class TrackerBroadcastTask implements Runnable {
                     .with("x", String.valueOf((int) placed.x()))
                     .with("y", String.valueOf((int) placed.y()))
                     .with("z", String.valueOf((int) placed.z()))
-                    .with("world", placed.worldName())
+                    .with("world", com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, placed.worldName()))
                     .build();
             } else if (state instanceof EggState.Dropped dropped) {
                 org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
@@ -70,7 +70,7 @@ public class TrackerBroadcastTask implements Runnable {
                         .with("x", String.valueOf(loc.getBlockX()))
                         .with("y", String.valueOf(loc.getBlockY()))
                         .with("z", String.valueOf(loc.getBlockZ()))
-                        .with("world", loc.getWorld().getName())
+                        .with("world", com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, loc.getWorld().getName()))
                         .build();
                 } else {
                     org.bukkit.World world = Bukkit.getWorld(dropped.worldName());
@@ -81,7 +81,7 @@ public class TrackerBroadcastTask implements Runnable {
                         .with("x", String.valueOf((int) dropped.x()))
                         .with("y", String.valueOf((int) dropped.y()))
                         .with("z", String.valueOf((int) dropped.z()))
-                        .with("world", dropped.worldName())
+                        .with("world", com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, dropped.worldName()))
                         .build();
                 }
             }
