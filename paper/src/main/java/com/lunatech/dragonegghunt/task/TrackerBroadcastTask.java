@@ -110,8 +110,20 @@ public class TrackerBroadcastTask implements Runnable {
             }
 
             if (doActionBar && message != null) {
+                boolean onlyHolders = plugin.getConfigHandler().getConfig().dragonEggTracker.actionbarOnlyForHolders;
+                com.lunatech.dragonegghunt.service.TrackerRecipeService recipeService = plugin.getTrackerRecipeService();
+
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (player == null) continue;
+
+                    if (onlyHolders) {
+                        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+                        if (!recipeService.isTrackerCompass(inv.getItemInMainHand()) && 
+                            !recipeService.isTrackerCompass(inv.getItemInOffHand())) {
+                            continue;
+                        }
+                    }
+
                     player.sendActionBar(message);
                 }
             }

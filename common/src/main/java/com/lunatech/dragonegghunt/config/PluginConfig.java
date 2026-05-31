@@ -69,6 +69,9 @@ public class PluginConfig implements VersionedConfig {
         @Comment("Tracking feedback method: COMPASS, ACTIONBAR, BOTH, or NONE")
         public String trackingMethod = "BOTH";
 
+        @Comment("Should the ActionBar message be shown ONLY to players holding the tracker compass? (If false, it is broadcast to everyone if actionbar is enabled)")
+        public boolean actionbarOnlyForHolders = false;
+
         @Comment("Compass tracker item settings")
         public CompassTracker compassTracker = new CompassTracker();
     }
