@@ -90,6 +90,21 @@ public class PluginConfig implements VersionedConfig {
 
         @Comment("Compass tracker item settings")
         public CompassTracker compassTracker = new CompassTracker();
+
+        @Comment("Potion buff reward settings for the holder of the Alpha Dragon Egg")
+        public PotionBuffReward potionBuffReward = new PotionBuffReward();
+    }
+
+    @ConfigSerializable
+    public static class PotionBuffReward {
+        @Comment("Should players holding the Alpha Dragon Egg receive configured potion effects?")
+        public boolean enabled = false;
+
+        @Comment("List of potion effects to apply to the holder. Format: EFFECT_TYPE:AMPLIFIER (e.g. SPEED:1, REGENERATION:0)")
+        public java.util.List<String> effects = java.util.List.of(
+            "SPEED:0",
+            "REGENERATION:0"
+        );
     }
 
     @ConfigSerializable

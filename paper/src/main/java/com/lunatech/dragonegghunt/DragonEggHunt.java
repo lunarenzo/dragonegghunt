@@ -46,6 +46,8 @@ public class DragonEggHunt extends AbstractExample {
     private com.lunatech.dragonegghunt.service.EggTrackerService eggTrackerService;
     private com.lunatech.dragonegghunt.service.TrackerRecipeService trackerRecipeService;
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
+    private space.arim.morepaperlib.scheduling.ScheduledTask potionBuffTask;
+    private com.lunatech.dragonegghunt.task.PotionBuffTask potionBuffTaskRunner;
 
 
     public static org.bukkit.NamespacedKey ALPHA_EGG_KEY;
@@ -138,12 +140,32 @@ public class DragonEggHunt extends AbstractExample {
                 java.time.Duration.ofMillis(interval * 50L)
             );
         }
+
+        // Start repeating potion buff task
+        com.lunatech.dragonegghunt.config.PluginConfig.PotionBuffReward rewardConfig = configHandler.getConfig().dragonEggTracker.potionBuffReward;
+        if (rewardConfig != null && rewardConfig.enabled) {
+            potionBuffTaskRunner = new com.lunatech.dragonegghunt.task.PotionBuffTask(this);
+            space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
+            potionBuffTask = morePaperLib.scheduling().asyncScheduler().runAtFixedRate(
+                potionBuffTaskRunner,
+                java.time.Duration.ofMillis(20L * 50L),
+                java.time.Duration.ofMillis(20L * 50L)
+            );
+        }
     }
 
     @Override
     public void onDisable() {
         if (broadcastTask != null) {
             broadcastTask.cancel();
+        }
+        if (potionBuffTask != null) {
+            potionBuffTask.cancel();
+            potionBuffTask = null;
+        }
+        if (potionBuffTaskRunner != null) {
+            potionBuffTaskRunner.cleanup();
+            potionBuffTaskRunner = null;
         }
         if (trackerRecipeService != null) {
             trackerRecipeService.unregisterRecipe();
@@ -180,6 +202,25 @@ public class DragonEggHunt extends AbstractExample {
                     new com.lunatech.dragonegghunt.task.TrackerBroadcastTask(this),
                     java.time.Duration.ofMillis(20L * 50L),
                     java.time.Duration.ofMillis(interval * 50L)
+                );
+            }
+
+            if (potionBuffTask != null) {
+                potionBuffTask.cancel();
+                potionBuffTask = null;
+            }
+            if (potionBuffTaskRunner != null) {
+                potionBuffTaskRunner.cleanup();
+                potionBuffTaskRunner = null;
+            }
+            com.lunatech.dragonegghunt.config.PluginConfig.PotionBuffReward rewardConfig = configHandler.getConfig().dragonEggTracker.potionBuffReward;
+            if (rewardConfig != null && rewardConfig.enabled) {
+                potionBuffTaskRunner = new com.lunatech.dragonegghunt.task.PotionBuffTask(this);
+                space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
+                potionBuffTask = morePaperLib.scheduling().asyncScheduler().runAtFixedRate(
+                    potionBuffTaskRunner,
+                    java.time.Duration.ofMillis(20L * 50L),
+                    java.time.Duration.ofMillis(20L * 50L)
                 );
             }
         }
