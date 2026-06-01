@@ -23,7 +23,23 @@ import java.util.List;
 public final class AdminDashboard {
 
     private static final MiniMessage MM = MiniMessage.miniMessage();
-    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final java.time.format.DateTimeFormatter TIME_FORMAT = 
+        java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
+            .withZone(java.time.ZoneId.systemDefault());
+
+    // Pre-deserialized components for zero parsing overhead on GUI open
+    private static final Component TITLE_COMP = MM.deserialize("<gold><bold>Dragon Egg Hunt Admin");
+    private static final Component EGG_STATUS_NAME = MM.deserialize("<light_purple><bold>Alpha Dragon Egg State");
+    private static final Component EGG_STATUS_LORE_HEADER = MM.deserialize("<gray>Inspect the current physical state of the egg.");
+    
+    private static final Component ADMIN_ACTIONS_NAME = MM.deserialize("<red><bold>Administrative Actions");
+    private static final Component ADMIN_ACTIONS_LORE_HEADER = MM.deserialize("<gray>Perform manual overrides on the egg hunt event.");
+    private static final Component ADMIN_ACTIONS_LEFT_CLICK = MM.deserialize("<yellow>Left-Click: <green>Force Altar Respawn");
+    private static final Component ADMIN_ACTIONS_RIGHT_CLICK = MM.deserialize("<yellow>Right-Click: <green>Locate & Get Coordinates");
+    
+    private static final Component AUDIT_LOGS_NAME = MM.deserialize("<aqua><bold>Recent Egg Transitions");
+    private static final Component AUDIT_LOGS_LORE_HEADER = MM.deserialize("<gray>Real-time lifecycle timeline (last 10 transitions):");
+    private static final Component AUDIT_LOGS_EMPTY = MM.deserialize("<red>No logs recorded yet.");
 
     private final DragonEggHunt plugin;
 
@@ -39,7 +55,7 @@ public final class AdminDashboard {
     public void open(Player player) {
         // Create 3-row GUI
         Gui gui = Gui.gui()
-            .title(MM.deserialize("<gold><bold>Dragon Egg Hunt Admin"))
+            .title(TITLE_COMP)
             .rows(3)
             .disableAllInteractions()
             .create();
@@ -67,7 +83,7 @@ public final class AdminDashboard {
         List<Component> lore = new ArrayList<>();
         org.bukkit.Location targetLoc = null;
 
-        lore.add(MM.deserialize("<gray>Inspect the current physical state of the egg."));
+        lore.add(EGG_STATUS_LORE_HEADER);
         lore.add(Component.empty());
 
         if (state instanceof EggState.Held held) {
@@ -110,7 +126,7 @@ public final class AdminDashboard {
         org.bukkit.Location finalLoc = targetLoc;
 
         return PaperItemBuilder.from(Material.DRAGON_EGG)
-            .name(MM.deserialize("<light_purple><bold>Alpha Dragon Egg State"))
+            .name(EGG_STATUS_NAME)
             .lore(lore)
             .asGuiItem(event -> {
                 if (finalLoc != null) {
@@ -125,13 +141,13 @@ public final class AdminDashboard {
 
     private GuiItem getAdminActionsItem(Player player, Gui gui) {
         List<Component> lore = new ArrayList<>();
-        lore.add(MM.deserialize("<gray>Perform manual overrides on the egg hunt event."));
+        lore.add(ADMIN_ACTIONS_LORE_HEADER);
         lore.add(Component.empty());
-        lore.add(MM.deserialize("<yellow>Left-Click: <green>Force Altar Respawn"));
-        lore.add(MM.deserialize("<yellow>Right-Click: <green>Locate & Get Coordinates"));
+        lore.add(ADMIN_ACTIONS_LEFT_CLICK);
+        lore.add(ADMIN_ACTIONS_RIGHT_CLICK);
 
         return PaperItemBuilder.from(Material.COMMAND_BLOCK)
-            .name(MM.deserialize("<red><bold>Administrative Actions"))
+            .name(ADMIN_ACTIONS_NAME)
             .lore(lore)
             .asGuiItem(event -> {
                 if (event.isLeftClick()) {
@@ -168,22 +184,22 @@ public final class AdminDashboard {
 
     private GuiItem getAuditLogsItem() {
         List<Component> lore = new ArrayList<>();
-        lore.add(MM.deserialize("<gray>Real-time lifecycle timeline (last 10 transitions):"));
+        lore.add(AUDIT_LOGS_LORE_HEADER);
         lore.add(Component.empty());
 
         List<TransitionLog> logs = plugin.getEggAuditService().getCachedLogs();
         if (logs.isEmpty()) {
-            lore.add(MM.deserialize("<red>No logs recorded yet."));
+            lore.add(AUDIT_LOGS_EMPTY);
         } else {
             for (TransitionLog log : logs) {
-                String timeStr = TIME_FORMAT.format(new Date(log.loggedAt()));
+                String timeStr = TIME_FORMAT.format(java.time.Instant.ofEpochMilli(log.loggedAt()));
                 String playerPart = "";
                 if (log.playerUuid() != null) {
                     String name = Bukkit.getOfflinePlayer(log.playerUuid()).getName();
                     playerPart = " by <gold>" + (name != null ? name : log.playerUuid().toString().substring(0, 8)) + "</gold>";
                 }
                 String logLine = String.format("<dark_gray>[%s]</dark_gray> <yellow>%s%s</yellow> at <gray>%s (%d, %d, %d)</gray>",
-                    timeStr.substring(11), // Just time HH:mm:ss
+                    timeStr,
                     log.actionType(),
                     playerPart,
                     log.worldName(),
@@ -196,7 +212,7 @@ public final class AdminDashboard {
         }
 
         return PaperItemBuilder.from(Material.BOOK)
-            .name(MM.deserialize("<aqua><bold>Recent Egg Transitions"))
+            .name(AUDIT_LOGS_NAME)
             .lore(lore)
             .asGuiItem();
     }
