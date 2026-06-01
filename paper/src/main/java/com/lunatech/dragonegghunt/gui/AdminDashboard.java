@@ -3,7 +3,7 @@ package com.lunatech.dragonegghunt.gui;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.persistence.TransitionLog;
 import com.lunatech.dragonegghunt.state.EggState;
-import dev.triumphteam.gui.builder.item.ItemBuilder;
+import dev.triumphteam.gui.builder.item.PaperItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
@@ -45,7 +45,7 @@ public final class AdminDashboard {
             .create();
 
         // Fill background borders
-        GuiItem border = ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
+        GuiItem border = PaperItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
             .name(Component.empty())
             .asGuiItem();
         gui.getFiller().fill(border);
@@ -109,7 +109,7 @@ public final class AdminDashboard {
 
         org.bukkit.Location finalLoc = targetLoc;
 
-        return ItemBuilder.from(Material.DRAGON_EGG)
+        return PaperItemBuilder.from(Material.DRAGON_EGG)
             .name(MM.deserialize("<light_purple><bold>Alpha Dragon Egg State"))
             .lore(lore)
             .asGuiItem(event -> {
@@ -130,7 +130,7 @@ public final class AdminDashboard {
         lore.add(MM.deserialize("<yellow>Left-Click: <green>Force Altar Respawn"));
         lore.add(MM.deserialize("<yellow>Right-Click: <green>Locate & Get Coordinates"));
 
-        return ItemBuilder.from(Material.COMMAND_BLOCK)
+        return PaperItemBuilder.from(Material.COMMAND_BLOCK)
             .name(MM.deserialize("<red><bold>Administrative Actions"))
             .lore(lore)
             .asGuiItem(event -> {
@@ -195,7 +195,7 @@ public final class AdminDashboard {
             }
         }
 
-        return ItemBuilder.from(Material.BOOK)
+        return PaperItemBuilder.from(Material.BOOK)
             .name(MM.deserialize("<aqua><bold>Recent Egg Transitions"))
             .lore(lore)
             .asGuiItem();
