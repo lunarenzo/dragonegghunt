@@ -19,14 +19,23 @@ public class DefaultEggAuditService implements EggAuditService {
     private final AuditLogRepository repository;
     private final ConcurrentLinkedQueue<TransitionLog> queue = new ConcurrentLinkedQueue<>();
     private final List<TransitionLog> cache = new CopyOnWriteArrayList<>();
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
-        Thread thread = new Thread(runnable, "dragonegghunt-audit-worker");
-        thread.setDaemon(true);
-        return thread;
-    });
+    private ScheduledExecutorService scheduler;
 
     public DefaultEggAuditService(AuditLogRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public void start() {
+        if (scheduler != null) {
+            return;
+        }
+
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "dragonegghunt-audit-worker");
+            thread.setDaemon(true);
+            return thread;
+        });
 
         // Initial load of latest 10 items into RAM cache asynchronously
         CompletableFuture.runAsync(() -> {
@@ -91,14 +100,17 @@ public class DefaultEggAuditService implements EggAuditService {
 
     @Override
     public void flushQueueSync() {
-        // Shutdown the background scheduler
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(3, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
+        if (scheduler != null) {
+            // Shutdown the background scheduler
+            scheduler.shutdown();
+            try {
+                if (!scheduler.awaitTermination(3, TimeUnit.SECONDS)) {
+                    scheduler.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            scheduler = null;
         }
 
         // Final synchronous flush of remaining queue elements

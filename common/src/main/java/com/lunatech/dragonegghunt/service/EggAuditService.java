@@ -10,6 +10,12 @@ import java.util.concurrent.CompletableFuture;
 public interface EggAuditService {
 
     /**
+     * Initializes the service by loading cached entries and scheduling background tasks.
+     * Must be called during plugin enablement after the database is started.
+     */
+    void start();
+
+    /**
      * Enqueues a log transition event to be written asynchronously.
      * Execution takes under 1 microsecond and is completely off-thread friendly.
      */

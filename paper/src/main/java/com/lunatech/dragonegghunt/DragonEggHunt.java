@@ -127,6 +127,11 @@ public class DragonEggHunt extends AbstractExample {
             return;
         }
 
+        // Start audit service logger (safe after DB start)
+        if (eggAuditService != null) {
+            eggAuditService.start();
+        }
+
         // Load egg tracker state
         eggTrackerService.loadState();
         eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
@@ -275,6 +280,9 @@ public class DragonEggHunt extends AbstractExample {
      * Reload database connections and messaging setup.
      */
     public void reloadDatabaseOnly() {
+        if (eggAuditService != null) {
+            eggAuditService.flushQueueSync();
+        }
         if (databaseHandler != null) {
             databaseHandler.onDisable(this);
             databaseHandler.onLoad(this);
@@ -283,6 +291,9 @@ public class DragonEggHunt extends AbstractExample {
             messagingHandler.onDisable(this);
             messagingHandler.onLoad(this);
             messagingHandler.onEnable(this);
+        }
+        if (eggAuditService != null) {
+            eggAuditService.start();
         }
     }
 
