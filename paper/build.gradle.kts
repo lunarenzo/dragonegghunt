@@ -20,6 +20,14 @@ dependencies {
         exclude(group = "net.kyori", module = "adventure-text-serializer-plain")
         exclude(group = "net.kyori", module = "adventure-text-serializer-json")
     }
+    implementation("net.kyori:adventure-platform-bukkit:4.3.3") {
+        exclude(group = "net.kyori", module = "adventure-api")
+        exclude(group = "net.kyori", module = "adventure-text-serializer-gson")
+        exclude(group = "net.kyori", module = "adventure-text-serializer-legacy")
+        exclude(group = "net.kyori", module = "adventure-text-serializer-plain")
+        exclude(group = "net.kyori", module = "adventure-text-serializer-json")
+        exclude(group = "net.kyori", module = "adventure-text-serializer-bungeecord")
+    }
     api(libs.colorparser.paper) {
         exclude("net.kyori")
     }
