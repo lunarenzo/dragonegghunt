@@ -299,7 +299,7 @@ public class ConfigLoader {
         final CommentedConfigurationNode newRoot = CommentedConfigurationNode.root(loader.defaultOptions());
         newRoot.set(config);
 
-        if (originallyEmpty || currentVersion != newVersion) {
+        if (originallyEmpty || currentVersion != newVersion || hasMissingKeys(newRoot, node)) {
             loader.save(newRoot);
         }
 
@@ -340,5 +340,32 @@ public class ConfigLoader {
                     .serializers(builder -> builder.registerAll(serializerBuilder.build()))
             )
             .build();
+    }
+
+    private static boolean hasMissingKeys(@NotNull org.spongepowered.configurate.ConfigurationNode source, @NotNull org.spongepowered.configurate.ConfigurationNode target) {
+        if (source.isMap()) {
+            for (Object key : source.childrenMap().keySet()) {
+                org.spongepowered.configurate.ConfigurationNode sourceChild = source.node(key);
+                org.spongepowered.configurate.ConfigurationNode targetChild = target.node(key);
+                if (targetChild.virtual()) {
+                    return true;
+                }
+                if (hasMissingKeys(sourceChild, targetChild)) {
+                    return true;
+                }
+            }
+        } else if (source.isList()) {
+            List<? extends org.spongepowered.configurate.ConfigurationNode> sourceChildren = source.childrenList();
+            List<? extends org.spongepowered.configurate.ConfigurationNode> targetChildren = target.childrenList();
+            if (sourceChildren.size() > targetChildren.size()) {
+                return true;
+            }
+            for (int i = 0; i < sourceChildren.size(); i++) {
+                if (hasMissingKeys(sourceChildren.get(i), targetChildren.get(i))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
