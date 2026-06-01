@@ -522,9 +522,26 @@ public class EggMovementListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player) {
-            checkPossessionDelayed();
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
         }
+
+        ItemStack clickedItem = event.getCurrentItem();
+        if (isAlphaEgg(clickedItem)) {
+            org.bukkit.event.inventory.InventoryAction action = event.getAction();
+            if (action == org.bukkit.event.inventory.InventoryAction.PICKUP_ALL ||
+                action == org.bukkit.event.inventory.InventoryAction.PICKUP_SOME ||
+                action == org.bukkit.event.inventory.InventoryAction.PICKUP_HALF ||
+                action == org.bukkit.event.inventory.InventoryAction.PICKUP_ONE ||
+                action == org.bukkit.event.inventory.InventoryAction.SWAP_WITH_CURSOR ||
+                action == org.bukkit.event.inventory.InventoryAction.CLONE_STACK) {
+                event.setCancelled(true);
+                checkPossessionDelayed();
+                return;
+            }
+        }
+
+        checkPossessionDelayed();
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -646,11 +663,35 @@ public class EggMovementListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
-        if (event.getPlayer() instanceof Player) {
-            checkPossessionDelayed();
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
         }
+
+        ItemStack cursorItem = player.getItemOnCursor();
+        if (isAlphaEgg(cursorItem)) {
+            java.util.Map<Integer, ItemStack> leftover = player.getInventory().addItem(cursorItem.clone());
+            if (!leftover.isEmpty()) {
+                for (ItemStack item : leftover.values()) {
+                    org.bukkit.Location loc = player.getLocation();
+                    Item itemEntity = player.getWorld().dropItemNaturally(loc, item);
+                    itemEntity.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+                    
+                    eggTrackerService.updateState(new EggState.Dropped(
+                        itemEntity.getLocation().getWorld().getName(),
+                        itemEntity.getLocation().getX(),
+                        itemEntity.getLocation().getY(),
+                        itemEntity.getLocation().getZ(),
+                        itemEntity.getUniqueId()
+                    ));
+                }
+            } else {
+                eggTrackerService.updateState(new EggState.Held(player.getUniqueId(), System.currentTimeMillis()));
+            }
+            player.setItemOnCursor(null);
+        }
+        checkPossessionDelayed();
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
