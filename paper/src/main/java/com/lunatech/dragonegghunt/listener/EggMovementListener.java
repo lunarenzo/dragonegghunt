@@ -86,6 +86,9 @@ public class EggMovementListener implements Listener {
 
         org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
         if (openInv != null) {
+            if (isAlphaEgg(openInv.getCursor())) {
+                return true;
+            }
             org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
                 org.bukkit.event.inventory.InventoryType type = topInventory.getType();
@@ -149,6 +152,14 @@ public class EggMovementListener implements Listener {
 
         org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
         if (openInv != null) {
+            ItemStack viewCursor = openInv.getCursor();
+            if (isAlphaEgg(viewCursor)) {
+                if (isLegitimate && !foundLegitimate[0]) {
+                    foundLegitimate[0] = true;
+                } else {
+                    openInv.setCursor(stripTag(viewCursor, player));
+                }
+            }
             org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
                 org.bukkit.event.inventory.InventoryType type = topInventory.getType();
@@ -559,6 +570,10 @@ public class EggMovementListener implements Listener {
             
             org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
             if (openInv != null) {
+                if (isAlphaEgg(openInv.getCursor())) {
+                    openInv.setCursor(null);
+                    dropped = true;
+                }
                 org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
                 if (topInventory != null) {
                     org.bukkit.event.inventory.InventoryType type = topInventory.getType();
