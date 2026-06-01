@@ -38,6 +38,6 @@ public class V7__create_egg_audit_logs extends BaseJavaMigration {
 
         // Create timestamp index for fast retrieval sorting
         String indexName = context.render(org.jooq.impl.DSL.name("idx_egg_audit_logs_time"));
-        context.execute("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (logged_at DESC)");
+        context.execute("CREATE INDEX " + indexName + " ON " + tableName + " (logged_at DESC)");
     }
 }
