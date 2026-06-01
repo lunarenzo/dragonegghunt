@@ -107,14 +107,8 @@ public class EggMovementListener implements Listener {
         if (item == null) {
             return null;
         }
-        ItemStack stripped = item.clone();
-        org.bukkit.inventory.meta.ItemMeta meta = stripped.getItemMeta();
-        if (meta != null) {
-            meta.getPersistentDataContainer().remove(DragonEggHunt.ALPHA_EGG_KEY);
-            stripped.setItemMeta(meta);
-        }
         player.sendMessage(Translation.as("egghunt.duplicate-detected"));
-        return stripped;
+        return new ItemStack(Material.DRAGON_EGG, item.getAmount());
     }
 
     private void scanAndClean(Player player, boolean isLegitimate, boolean[] foundLegitimate) {
