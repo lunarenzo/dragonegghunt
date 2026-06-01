@@ -81,12 +81,11 @@ public class EggMovementListener implements Listener {
             return true;
         }
 
-        if (isAlphaEgg(player.getItemOnCursor())) {
-            return true;
-        }
-
         org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
         if (openInv != null) {
+            if (isAlphaEgg(openInv.getCursor())) {
+                return true;
+            }
             org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
                 org.bukkit.event.inventory.InventoryType type = topInventory.getType();
@@ -139,17 +138,16 @@ public class EggMovementListener implements Listener {
             }
         }
 
-        ItemStack cursor = player.getItemOnCursor();
-        if (isAlphaEgg(cursor)) {
-            if (isLegitimate && !foundLegitimate[0]) {
-                foundLegitimate[0] = true;
-            } else {
-                player.setItemOnCursor(stripTag(cursor, player));
-            }
-        }
-
         org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
         if (openInv != null) {
+            ItemStack cursor = openInv.getCursor();
+            if (isAlphaEgg(cursor)) {
+                if (isLegitimate && !foundLegitimate[0]) {
+                    foundLegitimate[0] = true;
+                } else {
+                    openInv.setCursor(stripTag(cursor, player));
+                }
+            }
             org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
                 org.bukkit.event.inventory.InventoryType type = topInventory.getType();
@@ -575,14 +573,13 @@ public class EggMovementListener implements Listener {
                 dropped = true;
             }
             
-            ItemStack cursor = player.getItemOnCursor();
-            if (isAlphaEgg(cursor)) {
-                player.setItemOnCursor(null);
-                dropped = true;
-            }
-            
             org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
             if (openInv != null) {
+                ItemStack cursor = openInv.getCursor();
+                if (isAlphaEgg(cursor)) {
+                    openInv.setCursor(null);
+                    dropped = true;
+                }
                 org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
                 if (topInventory != null) {
                     org.bukkit.event.inventory.InventoryType type = topInventory.getType();
@@ -673,10 +670,11 @@ public class EggMovementListener implements Listener {
             return;
         }
 
-        ItemStack cursorItem = player.getItemOnCursor();
+        org.bukkit.inventory.InventoryView view = event.getView();
+        ItemStack cursorItem = view.getCursor();
         if (isAlphaEgg(cursorItem)) {
             // Clear cursor FIRST to prevent any duplication risk before we re-insert.
-            player.setItemOnCursor(null);
+            view.setCursor(null);
 
             java.util.Map<Integer, ItemStack> leftover = player.getInventory().addItem(cursorItem.clone());
             if (!leftover.isEmpty()) {
