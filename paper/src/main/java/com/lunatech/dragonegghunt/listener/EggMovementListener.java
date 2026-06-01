@@ -522,26 +522,25 @@ public class EggMovementListener implements Listener {
     }
 
     /**
-     * Prevents the Alpha Dragon Egg from being lifted onto the player's cursor inside
-     * the inventory screen.
+     * Intercepts inventory interactions involving the Alpha Dragon Egg.
      *
-     * <p><b>Root cause of the exploit:</b> When a player left-clicks the egg, Minecraft
-     * moves it to their "cursor" — an intermediate slot that is not part of the standard
-     * inventory grid. Our possession scanner checks {@code getContents()} and misses
-     * cursor items, triggering a false {@code UNHELD} transition and removing all buffs.</p>
+     * <h3>Strategy: Cancel + Next-Tick Safety Net</h3>
+     * <p>We use a two-pronged approach because {@code event.setCancelled(true)} for
+     * {@code PICKUP_ALL} is not 100% reliable in Paper 1.21.x — the server may still
+     * allow the item to reach the cursor despite the cancel.</p>
      *
-     * <p><b>Why {@code player.updateInventory()} is mandatory:</b> Cancelling
-     * {@code InventoryClickEvent} prevents the server-side item move, but it does NOT
-     * automatically notify the client. Without the resync, the client displays the egg
-     * floating on the cursor even though the server kept it in its slot. When the player
-     * closes inventory, the client sends a packet reflecting its stale cursor state,
-     * which can delete the egg or confuse server-side tracking entirely.</p>
+     * <ol>
+     *   <li><b>Cancel:</b> Attempt to prevent the pickup action immediately.</li>
+     *   <li><b>Safety net:</b> Schedule {@link #forceCursorReturn(Player)} for the
+     *       next server tick. If the cancel worked, the egg is in its slot and the
+     *       method is a no-op. If the cancel failed, the egg is on the cursor and
+     *       the method moves it back immediately.</li>
+     * </ol>
      *
-     * <p><b>Why we do NOT call {@code checkPossessionDelayed()} on cancel:</b> The egg
-     * never moved — there is nothing to revalidate. Triggering validation during the
-     * brief window between cancel and the forced client resync risks a race condition
-     * where {@code hasAlphaEgg} returns false (cursor desync not yet resolved), setting
-     * state to {@code UNHELD}.</p>
+     * <p><b>Critical:</b> We do NOT cancel {@code PLACE_ALL/SOME/ONE} (egg from
+     * cursor back to slot). Cancelling those caused the egg to disappear because
+     * {@code player.updateInventory()} would clear the visual cursor without the
+     * slot ever receiving the item.</p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryClick(InventoryClickEvent event) {
@@ -557,35 +556,34 @@ public class EggMovementListener implements Listener {
         if (eggInSlot) {
             org.bukkit.event.inventory.InventoryAction action = event.getAction();
             switch (action) {
-                // All actions that would transfer the egg from its slot to the cursor:
+                // Actions that would move egg from slot → cursor:
                 case PICKUP_ALL, PICKUP_SOME, PICKUP_HALF, PICKUP_ONE,
                      SWAP_WITH_CURSOR, CLONE_STACK -> {
                     event.setCancelled(true);
-                    // Force-sync client inventory so the client does not keep a stale
-                    // visual of the egg floating on the cursor (client–server desync).
-                    Bukkit.getScheduler().runTask(plugin, player::updateInventory);
-                    return; // Egg stayed in its slot — no state change, no revalidation.
+                    // Schedule next-tick check: resync client if cancel worked,
+                    // or force egg off cursor if cancel silently failed.
+                    Bukkit.getScheduler().runTask(plugin, () -> forceCursorReturn(player));
+                    return; // Do not run possession check — egg didn't (shouldn't) move.
                 }
-                default -> { /* shift-click, hotbar-swap, etc. are fine */ }
+                default -> { /* shift-click, hotbar-swap etc. keep egg in inventory — OK */ }
             }
         }
 
+        // Egg is on cursor: do NOT cancel. Allow the player to place it back.
+        // forceCursorReturn() will handle it if it stays on cursor after the action.
         if (eggOnCursor) {
-            // Edge case: egg reached the cursor despite our guard.
-            // Cancel any further action and force a resync.
-            event.setCancelled(true);
-            Bukkit.getScheduler().runTask(plugin, player::updateInventory);
+            Bukkit.getScheduler().runTask(plugin, () -> forceCursorReturn(player));
             return;
         }
 
-        // Non-egg click — revalidate possession as normal.
+        // Unrelated click — revalidate possession as normal.
         checkPossessionDelayed();
     }
 
     /**
-     * Prevents the Alpha Dragon Egg from being drag-distributed across slots.
-     * Drag events move items from the cursor into multiple slots simultaneously;
-     * if the egg is on the cursor being dragged, we cancel and resync.
+     * Prevents the egg from being drag-distributed across inventory slots.
+     * Drag operations spread the cursor item across multiple slots; we cancel the
+     * drag and schedule {@link #forceCursorReturn(Player)} as a safety net.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryDrag(InventoryDragEvent event) {
@@ -594,7 +592,7 @@ public class EggMovementListener implements Listener {
         }
         if (isAlphaEgg(event.getOldCursor())) {
             event.setCancelled(true);
-            Bukkit.getScheduler().runTask(plugin, player::updateInventory);
+            Bukkit.getScheduler().runTask(plugin, () -> forceCursorReturn(player));
             return;
         }
         checkPossessionDelayed();
@@ -898,6 +896,62 @@ public class EggMovementListener implements Listener {
         if (isAlphaEgg(event.getItem().getItemStack())) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * Forces the Alpha Dragon Egg off the player's cursor and back into their
+     * inventory. Called one tick after a cancelled pickup action as a safety net
+     * for cases where {@code event.setCancelled(true)} did not fully prevent the
+     * item from reaching the cursor in Paper 1.21.x.
+     *
+     * <ul>
+     *   <li>If the cancel <b>worked</b>: cursor is empty, this is a no-op.</li>
+     *   <li>If the cancel <b>failed</b>: egg is on cursor, we move it to the first
+     *       available inventory slot, or drop it at the player's feet if full.</li>
+     * </ul>
+     *
+     * <p>After handling, {@code player.updateInventory()} syncs the corrected state
+     * back to the client so neither slot nor cursor appears empty.</p>
+     */
+    private void forceCursorReturn(Player player) {
+        if (!player.isOnline()) return;
+
+        ItemStack cursor = player.getItemOnCursor();
+        if (!isAlphaEgg(cursor)) {
+            // Cancel worked — egg is still in its slot. Just resync the client.
+            player.updateInventory();
+            return;
+        }
+
+        // Cancel silently failed — egg is on cursor. Immediately move it back.
+        player.setItemOnCursor(null);
+        java.util.Map<Integer, ItemStack> leftover = player.getInventory().addItem(cursor.clone());
+
+        if (!leftover.isEmpty()) {
+            // Inventory is completely full — drop at player's feet.
+            for (ItemStack item : leftover.values()) {
+                org.bukkit.Location loc = player.getLocation();
+                Item itemEntity = player.getWorld().dropItemNaturally(loc, item);
+                itemEntity.getPersistentDataContainer().set(
+                    DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1
+                );
+                eggTrackerService.updateState(new EggState.Dropped(
+                    itemEntity.getLocation().getWorld().getName(),
+                    itemEntity.getLocation().getX(),
+                    itemEntity.getLocation().getY(),
+                    itemEntity.getLocation().getZ(),
+                    itemEntity.getUniqueId()
+                ));
+            }
+        } else {
+            // Successfully placed back into inventory — player is still the holder.
+            eggTrackerService.updateState(
+                new EggState.Held(player.getUniqueId(), System.currentTimeMillis())
+            );
+        }
+
+        // Sync client with the final corrected state (slot has egg, cursor is empty).
+        player.updateInventory();
     }
 
     private UUID getHolderUuid() {
