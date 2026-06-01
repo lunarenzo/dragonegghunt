@@ -33,5 +33,7 @@ public abstract class AbstractExample extends JavaPlugin {
      * @return the egg tracker service
      */
     public abstract @NotNull com.lunatech.dragonegghunt.service.EggTrackerService getEggTrackerService();
+
+    public abstract @NotNull com.lunatech.dragonegghunt.service.EggAuditService getEggAuditService();
 }
 

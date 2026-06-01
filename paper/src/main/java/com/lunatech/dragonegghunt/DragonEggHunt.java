@@ -44,10 +44,12 @@ public class DragonEggHunt extends AbstractExample {
     private List<? extends Reloadable> handlers;
 
     private com.lunatech.dragonegghunt.service.EggTrackerService eggTrackerService;
+    private com.lunatech.dragonegghunt.service.EggAuditService eggAuditService;
     private com.lunatech.dragonegghunt.service.TrackerRecipeService trackerRecipeService;
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
     private space.arim.morepaperlib.scheduling.ScheduledTask potionBuffTask;
     private com.lunatech.dragonegghunt.task.PotionBuffTask potionBuffTaskRunner;
+    private space.arim.morepaperlib.scheduling.ScheduledTask databasePruneTask;
 
 
     public static org.bukkit.NamespacedKey ALPHA_EGG_KEY;
@@ -99,6 +101,10 @@ public class DragonEggHunt extends AbstractExample {
         this.eggTrackerService = new com.lunatech.dragonegghunt.service.impl.DefaultEggTrackerService(eggRepository);
         this.trackerRecipeService = new com.lunatech.dragonegghunt.service.impl.TrackerRecipeServiceImpl(this);
 
+        // Initialize Egg audit logs state & repository
+        com.lunatech.dragonegghunt.persistence.AuditLogRepository auditRepository = new com.lunatech.dragonegghunt.persistence.impl.SqlAuditLogRepository();
+        this.eggAuditService = new com.lunatech.dragonegghunt.service.impl.DefaultEggAuditService(auditRepository);
+
 
         for (Reloadable handler : handlers)
             handler.onLoad(instance);
@@ -124,6 +130,9 @@ public class DragonEggHunt extends AbstractExample {
         // Load egg tracker state
         eggTrackerService.loadState();
         eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
+
+        // Register state listener for audit logs
+        eggTrackerService.setStateListener(new com.lunatech.dragonegghunt.listener.AuditEventDispatcher(this));
 
         // Register custom compass tracker recipe
         if (trackerRecipeService != null) {
@@ -152,6 +161,14 @@ public class DragonEggHunt extends AbstractExample {
                 java.time.Duration.ofMillis(20L * 50L)
             );
         }
+
+        // Start repeating database prune task (runs every 6 hours)
+        space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
+        databasePruneTask = morePaperLib.scheduling().asyncScheduler().runAtFixedRate(
+            new com.lunatech.dragonegghunt.task.DatabasePruneTask(this),
+            java.time.Duration.ofMillis(0), // run immediately on startup
+            java.time.Duration.ofHours(6)   // run every 6 hours
+        );
     }
 
     @Override
@@ -166,6 +183,13 @@ public class DragonEggHunt extends AbstractExample {
         if (potionBuffTaskRunner != null) {
             potionBuffTaskRunner.cleanup();
             potionBuffTaskRunner = null;
+        }
+        if (databasePruneTask != null) {
+            databasePruneTask.cancel();
+            databasePruneTask = null;
+        }
+        if (eggAuditService != null) {
+            eggAuditService.flushQueueSync();
         }
         if (trackerRecipeService != null) {
             trackerRecipeService.unregisterRecipe();
@@ -223,6 +247,17 @@ public class DragonEggHunt extends AbstractExample {
                     java.time.Duration.ofMillis(20L * 50L)
                 );
             }
+
+            if (databasePruneTask != null) {
+                databasePruneTask.cancel();
+                databasePruneTask = null;
+            }
+            space.arim.morepaperlib.MorePaperLib morePaperLib = new space.arim.morepaperlib.MorePaperLib(this);
+            databasePruneTask = morePaperLib.scheduling().asyncScheduler().runAtFixedRate(
+                new com.lunatech.dragonegghunt.task.DatabasePruneTask(this),
+                java.time.Duration.ofMillis(0),
+                java.time.Duration.ofHours(6)
+            );
         }
     }
 
@@ -297,6 +332,10 @@ public class DragonEggHunt extends AbstractExample {
     @Override
     public @NotNull com.lunatech.dragonegghunt.service.EggTrackerService getEggTrackerService() {
         return eggTrackerService;
+    }
+
+    public @NotNull com.lunatech.dragonegghunt.service.EggAuditService getEggAuditService() {
+        return eggAuditService;
     }
 
     public @NotNull com.lunatech.dragonegghunt.service.TrackerRecipeService getTrackerRecipeService() {

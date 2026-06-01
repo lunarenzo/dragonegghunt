@@ -22,4 +22,6 @@ public interface EggTrackerService {
     void loadState();
 
     void saveState();
+
+    void setStateListener(EggStateListener listener);
 }

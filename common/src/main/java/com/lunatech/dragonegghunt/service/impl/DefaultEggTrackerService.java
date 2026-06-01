@@ -20,6 +20,8 @@ public class DefaultEggTrackerService implements EggTrackerService {
     private final AtomicReference<EggState> stateRef = new AtomicReference<>(new EggState.Unheld());
     private boolean overrideRegionProtection = false;
 
+    private com.lunatech.dragonegghunt.service.EggStateListener stateListener;
+
     public DefaultEggTrackerService(@NotNull EggStateRepository repository) {
         this.repository = repository;
     }
@@ -31,8 +33,17 @@ public class DefaultEggTrackerService implements EggTrackerService {
 
     @Override
     public void updateState(@NotNull EggState newState) {
+        EggState oldState = stateRef.get();
         stateRef.set(newState);
         saveState(); // Save state asynchronously whenever it updates
+        if (stateListener != null) {
+            stateListener.onStateTransition(oldState, newState);
+        }
+    }
+
+    @Override
+    public void setStateListener(com.lunatech.dragonegghunt.service.EggStateListener listener) {
+        this.stateListener = listener;
     }
 
     @Override

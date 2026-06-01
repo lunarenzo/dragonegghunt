@@ -70,7 +70,11 @@ public class EggHuntCommand extends Command {
                         new CommandAPICommand("database")
                             .withHelp("Reload database connections and messaging.", "Reload database.")
                             .executes(this::executorReloadDatabase)
-                    )
+                    ),
+                new CommandAPICommand("dashboard")
+                    .withHelp("Open the administrative dashboard GUI", "Open the administrative dashboard GUI")
+                    .withPermission(BASE_PERM + ".admin")
+                    .executesPlayer(this::executorDashboard)
             )
             .executes(this::executorInfo);
     }
@@ -202,5 +206,9 @@ public class EggHuntCommand extends Command {
                 sender.sendMessage(Translation.as("commands.egghunt.reload.failure"));
             }
         }).execute();
+    }
+
+    private void executorDashboard(Player player, CommandArguments args) {
+        new com.lunatech.dragonegghunt.gui.AdminDashboard(plugin).open(player);
     }
 }
