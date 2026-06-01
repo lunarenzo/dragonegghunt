@@ -70,7 +70,7 @@ public class EggMovementListener implements Listener {
     }
 
     private boolean hasAlphaEgg(Player player) {
-        ItemStack[] contents = player.getInventory().getContents();
+        ItemStack[] contents = player.getInventory().getStorageContents();
         for (ItemStack item : contents) {
             if (isAlphaEgg(item)) {
                 return true;
@@ -113,7 +113,7 @@ public class EggMovementListener implements Listener {
     }
 
     private void scanAndClean(Player player, boolean isLegitimate, boolean[] foundLegitimate) {
-        ItemStack[] contents = player.getInventory().getContents();
+        ItemStack[] contents = player.getInventory().getStorageContents();
         boolean modified = false;
         for (int i = 0; i < contents.length; i++) {
             ItemStack item = contents[i];
@@ -127,7 +127,7 @@ public class EggMovementListener implements Listener {
             }
         }
         if (modified) {
-            player.getInventory().setContents(contents);
+            player.getInventory().setStorageContents(contents);
         }
 
         ItemStack offHand = player.getInventory().getItemInOffHand();
@@ -560,14 +560,14 @@ public class EggMovementListener implements Listener {
         if (player.getUniqueId().equals(currentHolder)) {
             boolean dropped = false;
             
-            ItemStack[] contents = player.getInventory().getContents();
+            ItemStack[] contents = player.getInventory().getStorageContents();
             for (int i = 0; i < contents.length; i++) {
                 if (isAlphaEgg(contents[i])) {
                     contents[i] = null;
                     dropped = true;
                 }
             }
-            player.getInventory().setContents(contents);
+            player.getInventory().setStorageContents(contents);
             
             ItemStack offHand = player.getInventory().getItemInOffHand();
             if (isAlphaEgg(offHand)) {
