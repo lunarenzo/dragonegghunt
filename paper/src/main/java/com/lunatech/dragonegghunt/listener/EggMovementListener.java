@@ -521,35 +521,83 @@ public class EggMovementListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    /**
+     * Prevents the Alpha Dragon Egg from being lifted onto the player's cursor inside
+     * the inventory screen.
+     *
+     * <p><b>Root cause of the exploit:</b> When a player left-clicks the egg, Minecraft
+     * moves it to their "cursor" — an intermediate slot that is not part of the standard
+     * inventory grid. Our possession scanner checks {@code getContents()} and misses
+     * cursor items, triggering a false {@code UNHELD} transition and removing all buffs.</p>
+     *
+     * <p><b>Why {@code player.updateInventory()} is mandatory:</b> Cancelling
+     * {@code InventoryClickEvent} prevents the server-side item move, but it does NOT
+     * automatically notify the client. Without the resync, the client displays the egg
+     * floating on the cursor even though the server kept it in its slot. When the player
+     * closes inventory, the client sends a packet reflecting its stale cursor state,
+     * which can delete the egg or confuse server-side tracking entirely.</p>
+     *
+     * <p><b>Why we do NOT call {@code checkPossessionDelayed()} on cancel:</b> The egg
+     * never moved — there is nothing to revalidate. Triggering validation during the
+     * brief window between cancel and the forced client resync risks a race condition
+     * where {@code hasAlphaEgg} returns false (cursor desync not yet resolved), setting
+     * state to {@code UNHELD}.</p>
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
 
-        ItemStack clickedItem = event.getCurrentItem();
-        if (isAlphaEgg(clickedItem)) {
+        ItemStack currentItem = event.getCurrentItem();
+        ItemStack cursorItem  = event.getCursor();
+        boolean eggInSlot    = isAlphaEgg(currentItem);
+        boolean eggOnCursor  = isAlphaEgg(cursorItem);
+
+        if (eggInSlot) {
             org.bukkit.event.inventory.InventoryAction action = event.getAction();
-            if (action == org.bukkit.event.inventory.InventoryAction.PICKUP_ALL ||
-                action == org.bukkit.event.inventory.InventoryAction.PICKUP_SOME ||
-                action == org.bukkit.event.inventory.InventoryAction.PICKUP_HALF ||
-                action == org.bukkit.event.inventory.InventoryAction.PICKUP_ONE ||
-                action == org.bukkit.event.inventory.InventoryAction.SWAP_WITH_CURSOR ||
-                action == org.bukkit.event.inventory.InventoryAction.CLONE_STACK) {
-                event.setCancelled(true);
-                checkPossessionDelayed();
-                return;
+            switch (action) {
+                // All actions that would transfer the egg from its slot to the cursor:
+                case PICKUP_ALL, PICKUP_SOME, PICKUP_HALF, PICKUP_ONE,
+                     SWAP_WITH_CURSOR, CLONE_STACK -> {
+                    event.setCancelled(true);
+                    // Force-sync client inventory so the client does not keep a stale
+                    // visual of the egg floating on the cursor (client–server desync).
+                    Bukkit.getScheduler().runTask(plugin, player::updateInventory);
+                    return; // Egg stayed in its slot — no state change, no revalidation.
+                }
+                default -> { /* shift-click, hotbar-swap, etc. are fine */ }
             }
         }
 
+        if (eggOnCursor) {
+            // Edge case: egg reached the cursor despite our guard.
+            // Cancel any further action and force a resync.
+            event.setCancelled(true);
+            Bukkit.getScheduler().runTask(plugin, player::updateInventory);
+            return;
+        }
+
+        // Non-egg click — revalidate possession as normal.
         checkPossessionDelayed();
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    /**
+     * Prevents the Alpha Dragon Egg from being drag-distributed across slots.
+     * Drag events move items from the cursor into multiple slots simultaneously;
+     * if the egg is on the cursor being dragged, we cancel and resync.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getWhoClicked() instanceof Player) {
-            checkPossessionDelayed();
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
         }
+        if (isAlphaEgg(event.getOldCursor())) {
+            event.setCancelled(true);
+            Bukkit.getScheduler().runTask(plugin, player::updateInventory);
+            return;
+        }
+        checkPossessionDelayed();
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -664,6 +712,18 @@ public class EggMovementListener implements Listener {
         }
     }
 
+    /**
+     * Safety net: intercepts the Alpha Dragon Egg if it somehow reached the cursor
+     * (e.g., race condition or external plugin interaction) and forces it back into the
+     * player's inventory or drops it naturally if the inventory is full.
+     *
+     * <p><b>Disconnect handling:</b> Paper API guarantees that {@code InventoryCloseEvent}
+     * fires on player disconnect <em>before</em> {@code PlayerQuitEvent}. Cursor items
+     * are still accessible via {@code player.getItemOnCursor()} at this stage, making
+     * this the correct interception point for the disconnect-egg-loss exploit.
+     * By the time {@code PlayerQuitEvent} fires, the cursor is already cleared by the
+     * server — checking it there would always return null.</p>
+     */
     @EventHandler(priority = EventPriority.HIGH)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) {
@@ -672,13 +732,18 @@ public class EggMovementListener implements Listener {
 
         ItemStack cursorItem = player.getItemOnCursor();
         if (isAlphaEgg(cursorItem)) {
+            // Clear cursor FIRST to prevent any duplication risk before we re-insert.
+            player.setItemOnCursor(null);
+
             java.util.Map<Integer, ItemStack> leftover = player.getInventory().addItem(cursorItem.clone());
             if (!leftover.isEmpty()) {
+                // Inventory full — drop the egg at the player's location.
                 for (ItemStack item : leftover.values()) {
                     org.bukkit.Location loc = player.getLocation();
                     Item itemEntity = player.getWorld().dropItemNaturally(loc, item);
-                    itemEntity.getPersistentDataContainer().set(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1);
-                    
+                    itemEntity.getPersistentDataContainer().set(
+                        DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER, 1
+                    );
                     eggTrackerService.updateState(new EggState.Dropped(
                         itemEntity.getLocation().getWorld().getName(),
                         itemEntity.getLocation().getX(),
@@ -688,9 +753,11 @@ public class EggMovementListener implements Listener {
                     ));
                 }
             } else {
-                eggTrackerService.updateState(new EggState.Held(player.getUniqueId(), System.currentTimeMillis()));
+                // Egg successfully placed into inventory — player is still the holder.
+                eggTrackerService.updateState(new EggState.Held(
+                    player.getUniqueId(), System.currentTimeMillis()
+                ));
             }
-            player.setItemOnCursor(null);
         }
         checkPossessionDelayed();
     }
