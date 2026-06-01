@@ -120,7 +120,14 @@ public final class PotionBuffTask implements Runnable {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {
             for (PotionEffect effect : parsedEffects) {
-                player.removePotionEffect(effect.getType());
+                PotionEffect active = player.getPotionEffect(effect.getType());
+                if (active != null) {
+                    // Only remove the effect if it was applied by our plugin (duration <= 60 ticks)
+                    // and doesn't have a higher amplifier than what our plugin configures.
+                    if (active.getDuration() <= 60 && active.getAmplifier() <= effect.getAmplifier()) {
+                        player.removePotionEffect(effect.getType());
+                    }
+                }
             }
         }
     }
