@@ -72,7 +72,17 @@ public class EggMovementListener implements Listener {
 
     private boolean hasAlphaEgg(Player player) {
         if (playersWithEggOnCursor.contains(player.getUniqueId())) {
-            return true;
+            org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
+            if (openInv != null) {
+                ItemStack cursor = openInv.getCursor();
+                if (cursor != null && cursor.getType() != org.bukkit.Material.AIR && !isAlphaEgg(cursor)) {
+                    playersWithEggOnCursor.remove(player.getUniqueId());
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
         }
 
         // Fast-path check: does the player have any dragon egg at all?
@@ -197,7 +207,9 @@ public class EggMovementListener implements Listener {
         // Cursor scan
         if (openInv != null && (hasEggInCursor || playersWithEggOnCursor.contains(player.getUniqueId()))) {
             ItemStack cursor = openInv.getCursor();
-            if (isAlphaEgg(cursor) || playersWithEggOnCursor.contains(player.getUniqueId())) {
+            if (cursor != null && cursor.getType() != org.bukkit.Material.AIR && !isAlphaEgg(cursor)) {
+                playersWithEggOnCursor.remove(player.getUniqueId());
+            } else if (isAlphaEgg(cursor) || playersWithEggOnCursor.contains(player.getUniqueId())) {
                 if (isLegitimate && !foundLegitimate[0]) {
                     foundLegitimate[0] = true;
                     if (isAlphaEgg(cursor)) {
