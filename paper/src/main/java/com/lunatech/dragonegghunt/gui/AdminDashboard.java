@@ -1,6 +1,7 @@
 package com.lunatech.dragonegghunt.gui;
 
 import com.lunatech.dragonegghunt.DragonEggHunt;
+import com.lunatech.dragonegghunt.config.DashboardConfig;
 import com.lunatech.dragonegghunt.persistence.TransitionLog;
 import com.lunatech.dragonegghunt.state.EggState;
 import dev.triumphteam.gui.builder.item.PaperItemBuilder;
@@ -12,13 +13,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
  * Modern inventory-based administration dashboard UI built using TriumphGUI.
+ * Layout, labels, and behavior are loaded dynamically from DashboardConfig.
  */
 public final class AdminDashboard {
 
@@ -26,20 +26,6 @@ public final class AdminDashboard {
     private static final java.time.format.DateTimeFormatter TIME_FORMAT = 
         java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
             .withZone(java.time.ZoneId.systemDefault());
-
-    // Pre-deserialized components for zero parsing overhead on GUI open
-    private static final Component TITLE_COMP = MM.deserialize("<gold><bold>Dragon Egg Hunt Admin");
-    private static final Component EGG_STATUS_NAME = MM.deserialize("<light_purple><bold>Alpha Dragon Egg State");
-    private static final Component EGG_STATUS_LORE_HEADER = MM.deserialize("<gray>Inspect the current physical state of the egg.");
-    
-    private static final Component ADMIN_ACTIONS_NAME = MM.deserialize("<red><bold>Administrative Actions");
-    private static final Component ADMIN_ACTIONS_LORE_HEADER = MM.deserialize("<gray>Perform manual overrides on the egg hunt event.");
-    private static final Component ADMIN_ACTIONS_LEFT_CLICK = MM.deserialize("<yellow>Left-Click: <green>Force Altar Respawn");
-    private static final Component ADMIN_ACTIONS_RIGHT_CLICK = MM.deserialize("<yellow>Right-Click: <green>Locate & Get Coordinates");
-    
-    private static final Component AUDIT_LOGS_NAME = MM.deserialize("<aqua><bold>Recent Egg Transitions");
-    private static final Component AUDIT_LOGS_LORE_HEADER = MM.deserialize("<gray>Real-time lifecycle timeline (last 10 transitions):");
-    private static final Component AUDIT_LOGS_EMPTY = MM.deserialize("<red>No logs recorded yet.");
 
     private final DragonEggHunt plugin;
 
@@ -53,166 +39,249 @@ public final class AdminDashboard {
      * @param player the player to open the GUI for
      */
     public void open(Player player) {
-        // Create 3-row GUI
-        Gui gui = Gui.gui()
-            .title(TITLE_COMP)
-            .rows(3)
+        final DashboardConfig dashCfg = plugin.getConfigHandler().getDashboardConfig();
+        final DashboardConfig.GuiSettings guiCfg = dashCfg.gui;
+
+        // Custom Title component
+        final Component titleComponent = MM.deserialize(guiCfg.title);
+
+        // Create GUI
+        final Gui gui = Gui.gui()
+            .title(titleComponent)
+            .rows(guiCfg.rows)
             .disableAllInteractions()
             .create();
 
         // Fill background borders
-        GuiItem border = PaperItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
-            .name(Component.empty())
+        Material bgMaterial = Material.matchMaterial(guiCfg.backgroundMaterial);
+        if (bgMaterial == null) {
+            bgMaterial = Material.GRAY_STAINED_GLASS_PANE;
+        }
+        final Component bgName = guiCfg.backgroundDisplayName.isEmpty() 
+            ? Component.empty() 
+            : MM.deserialize(guiCfg.backgroundDisplayName);
+
+        final GuiItem border = PaperItemBuilder.from(bgMaterial)
+            .name(bgName)
             .asGuiItem();
         gui.getFiller().fill(border);
 
-        // Slot 10: Egg Status & Location
-        gui.setItem(10, getEggStatusItem(player, gui));
+        // Egg Status & Location item
+        gui.setItem(guiCfg.eggStatusSlot, getEggStatusItem(player, gui, dashCfg));
 
-        // Slot 12: Admin Actions
-        gui.setItem(12, getAdminActionsItem(player, gui));
+        // Admin Actions item
+        gui.setItem(guiCfg.adminActionsSlot, getAdminActionsItem(player, gui, dashCfg));
 
-        // Slot 14: Transition Audit Logs
-        gui.setItem(14, getAuditLogsItem());
+        // Transition Audit Logs item
+        gui.setItem(guiCfg.auditLogsSlot, getAuditLogsItem(dashCfg));
 
         gui.open(player);
     }
 
-    private GuiItem getEggStatusItem(Player player, Gui gui) {
-        EggState state = plugin.getEggTrackerService().getState();
-        List<Component> lore = new ArrayList<>();
+    private GuiItem getEggStatusItem(Player player, Gui gui, DashboardConfig dashCfg) {
+        final DashboardConfig.EggStatusSettings cfg = dashCfg.eggStatus;
+        final EggState state = plugin.getEggTrackerService().getState();
+        final List<Component> lore = new ArrayList<>();
         org.bukkit.Location targetLoc = null;
 
-        lore.add(EGG_STATUS_LORE_HEADER);
+        lore.add(MM.deserialize(cfg.loreHeader));
         lore.add(Component.empty());
 
         if (state instanceof EggState.Held held) {
-            String name = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
-            lore.add(MM.deserialize("<yellow>State: <green>Held by <gold>" + (name != null ? name : "Unknown") + "</gold>"));
-            Player holder = Bukkit.getPlayer(held.holderUuid());
-            if (holder != null && holder.isOnline()) {
+            final String name = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
+            final String holderName = name != null ? name : "Unknown";
+            final Player holder = Bukkit.getPlayer(held.holderUuid());
+            final boolean isOnline = holder != null && holder.isOnline();
+            final String holderStatus = isOnline ? "Online" : "Offline";
+            if (isOnline) {
                 targetLoc = holder.getLocation();
-                lore.add(MM.deserialize("<yellow>Holder: <green>Online"));
-                lore.add(MM.deserialize("<yellow>Location: <white>" + formatLocation(targetLoc) + "</white>"));
-            } else {
-                lore.add(MM.deserialize("<yellow>Holder: <red>Offline"));
+            }
+            final String locStr = isOnline ? formatLocation(targetLoc) : "unknown";
+
+            for (String line : cfg.heldFormat) {
+                lore.add(MM.deserialize(line
+                    .replace("{player}", holderName)
+                    .replace("{status}", holderStatus)
+                    .replace("{location}", locStr)
+                ));
             }
         } else if (state instanceof EggState.Placed placed) {
-            org.bukkit.World world = Bukkit.getWorld(placed.worldName());
+            final org.bukkit.World world = Bukkit.getWorld(placed.worldName());
             if (world != null) {
                 targetLoc = new org.bukkit.Location(world, placed.x(), placed.y(), placed.z());
             }
-            lore.add(MM.deserialize("<yellow>State: <green>Placed (Block)"));
-            lore.add(MM.deserialize("<yellow>Location: <white>" + placed.worldName() + " (" + (int)placed.x() + ", " + (int)placed.y() + ", " + (int)placed.z() + ")</white>"));
+            for (String line : cfg.placedFormat) {
+                lore.add(MM.deserialize(line
+                    .replace("{world}", placed.worldName())
+                    .replace("{x}", String.valueOf((int) placed.x()))
+                    .replace("{y}", String.valueOf((int) placed.y()))
+                    .replace("{z}", String.valueOf((int) placed.z()))
+                ));
+            }
         } else if (state instanceof EggState.Dropped dropped) {
-            org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
+            final org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
             if (entity != null && entity.isValid()) {
                 targetLoc = entity.getLocation();
-                lore.add(MM.deserialize("<yellow>State: <green>Dropped (Entity)"));
-                lore.add(MM.deserialize("<yellow>Location: <white>" + formatLocation(targetLoc) + "</white>"));
+                for (String line : cfg.droppedFormat) {
+                    lore.add(MM.deserialize(line
+                        .replace("{world}", targetLoc.getWorld().getName())
+                        .replace("{x}", String.valueOf((int) targetLoc.getX()))
+                        .replace("{y}", String.valueOf((int) targetLoc.getY()))
+                        .replace("{z}", String.valueOf((int) targetLoc.getZ()))
+                        .replace("{location_formatted}", formatLocation(targetLoc))
+                    ));
+                }
             } else {
-                lore.add(MM.deserialize("<yellow>State: <green>Dropped (Unloaded / Location)"));
-                lore.add(MM.deserialize("<yellow>Location: <white>" + dropped.worldName() + " (" + (int)dropped.x() + ", " + (int)dropped.y() + ", " + (int)dropped.z() + ")</white>"));
+                for (String line : cfg.droppedUnloadedFormat) {
+                    lore.add(MM.deserialize(line
+                        .replace("{world}", dropped.worldName())
+                        .replace("{x}", String.valueOf((int) dropped.x()))
+                        .replace("{y}", String.valueOf((int) dropped.y()))
+                        .replace("{z}", String.valueOf((int) dropped.z()))
+                    ));
+                }
             }
         } else {
-            lore.add(MM.deserialize("<yellow>State: <red>Unheld / Not Spawned"));
+            for (String line : cfg.unheldFormat) {
+                lore.add(MM.deserialize(line));
+            }
         }
 
-        if (targetLoc != null) {
+        if (targetLoc != null && !cfg.teleportActionLine.isEmpty()) {
             lore.add(Component.empty());
-            lore.add(MM.deserialize("<yellow>Left-Click to Teleport to the Egg"));
+            lore.add(MM.deserialize(cfg.teleportActionLine));
         }
 
-        org.bukkit.Location finalLoc = targetLoc;
+        final org.bukkit.Location finalLoc = targetLoc;
 
-        return PaperItemBuilder.from(Material.DRAGON_EGG)
-            .name(EGG_STATUS_NAME)
+        Material eggMaterial = Material.matchMaterial(cfg.material);
+        if (eggMaterial == null) {
+            eggMaterial = Material.DRAGON_EGG;
+        }
+
+        return PaperItemBuilder.from(eggMaterial)
+            .name(MM.deserialize(cfg.displayName))
             .lore(lore)
             .asGuiItem(event -> {
                 if (finalLoc != null) {
                     player.teleport(finalLoc);
-                    player.sendMessage(MM.deserialize("<green>Teleported to the Alpha Dragon Egg!"));
+                    if (!cfg.teleportSuccessMessage.isEmpty()) {
+                        player.sendMessage(MM.deserialize(cfg.teleportSuccessMessage));
+                    }
                     gui.close(player);
                 } else {
-                    player.sendMessage(MM.deserialize("<red>Could not locate the egg to teleport."));
+                    if (!cfg.teleportFailureMessage.isEmpty()) {
+                        player.sendMessage(MM.deserialize(cfg.teleportFailureMessage));
+                    }
                 }
             });
     }
 
-    private GuiItem getAdminActionsItem(Player player, Gui gui) {
-        List<Component> lore = new ArrayList<>();
-        lore.add(ADMIN_ACTIONS_LORE_HEADER);
+    private GuiItem getAdminActionsItem(Player player, Gui gui, DashboardConfig dashCfg) {
+        final DashboardConfig.AdminActionsSettings cfg = dashCfg.adminActions;
+        final List<Component> lore = new ArrayList<>();
+        lore.add(MM.deserialize(cfg.loreHeader));
         lore.add(Component.empty());
-        lore.add(ADMIN_ACTIONS_LEFT_CLICK);
-        lore.add(ADMIN_ACTIONS_RIGHT_CLICK);
+        if (!cfg.leftClickDescription.isEmpty()) {
+            lore.add(MM.deserialize(cfg.leftClickDescription));
+        }
+        if (!cfg.rightClickDescription.isEmpty()) {
+            lore.add(MM.deserialize(cfg.rightClickDescription));
+        }
 
-        return PaperItemBuilder.from(Material.COMMAND_BLOCK)
-            .name(ADMIN_ACTIONS_NAME)
+        Material actionMaterial = Material.matchMaterial(cfg.material);
+        if (actionMaterial == null) {
+            actionMaterial = Material.COMMAND_BLOCK;
+        }
+
+        return PaperItemBuilder.from(actionMaterial)
+            .name(MM.deserialize(cfg.displayName))
             .lore(lore)
             .asGuiItem(event -> {
                 if (event.isLeftClick()) {
-                    var config = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
-                    if (config != null) {
-                        org.bukkit.World world = Bukkit.getWorld(config.world);
+                    final var altarConfig = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
+                    if (altarConfig != null) {
+                        final org.bukkit.World world = Bukkit.getWorld(altarConfig.world);
                         if (world != null) {
-                            org.bukkit.Location altar = new org.bukkit.Location(world, config.x, config.y, config.z);
+                            final org.bukkit.Location altar = new org.bukkit.Location(world, altarConfig.x, altarConfig.y, altarConfig.z);
                             altar.getBlock().setType(Material.DRAGON_EGG);
-                            plugin.getEggTrackerService().updateState(new EggState.Placed(config.world, config.x, config.y, config.z));
+                            plugin.getEggTrackerService().updateState(new EggState.Placed(altarConfig.world, altarConfig.x, altarConfig.y, altarConfig.z));
 
-                            Bukkit.broadcast(MM.deserialize("<light_purple>The Alpha Dragon Egg has been administratively respawned at the altar!"));
+                            if (!cfg.respawnBroadcastMessage.isEmpty()) {
+                                Bukkit.broadcast(MM.deserialize(cfg.respawnBroadcastMessage));
+                            }
                         } else {
-                            player.sendMessage(MM.deserialize("<red>Altar world '" + config.world + "' is not loaded!"));
+                            if (!cfg.altarWorldNotLoadedMessage.isEmpty()) {
+                                player.sendMessage(MM.deserialize(cfg.altarWorldNotLoadedMessage.replace("{world}", altarConfig.world)));
+                            }
                         }
                     }
                     gui.close(player);
                 } else if (event.isRightClick()) {
-                    EggState state = plugin.getEggTrackerService().getState();
+                    final EggState state = plugin.getEggTrackerService().getState();
                     if (state instanceof EggState.Held held) {
-                        String name = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
-                        player.sendMessage(MM.deserialize("<yellow>Egg is currently held by player: <gold>" + (name != null ? name : held.holderUuid()) + "</gold>"));
+                        final String name = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
+                        final String holderName = name != null ? name : held.holderUuid().toString();
+                        player.sendMessage(MM.deserialize(cfg.locateHeldMessage.replace("{player}", holderName)));
                     } else if (state instanceof EggState.Placed placed) {
-                        player.sendMessage(MM.deserialize("<yellow>Egg is placed at: <gold>" + placed.worldName() + " (" + (int)placed.x() + ", " + (int)placed.y() + ", " + (int)placed.z() + ")</gold>"));
+                        player.sendMessage(MM.deserialize(cfg.locatePlacedMessage
+                            .replace("{world}", placed.worldName())
+                            .replace("{x}", String.valueOf((int) placed.x()))
+                            .replace("{y}", String.valueOf((int) placed.y()))
+                            .replace("{z}", String.valueOf((int) placed.z()))
+                        ));
                     } else if (state instanceof EggState.Dropped dropped) {
-                        player.sendMessage(MM.deserialize("<yellow>Egg is dropped at: <gold>" + dropped.worldName() + " (" + (int)dropped.x() + ", " + (int)dropped.y() + ", " + (int)dropped.z() + ")</gold>"));
+                        player.sendMessage(MM.deserialize(cfg.locateDroppedMessage
+                            .replace("{world}", dropped.worldName())
+                            .replace("{x}", String.valueOf((int) dropped.x()))
+                            .replace("{y}", String.valueOf((int) dropped.y()))
+                            .replace("{z}", String.valueOf((int) dropped.z()))
+                        ));
                     } else {
-                        player.sendMessage(MM.deserialize("<red>Egg is currently not spawned (Unheld)."));
+                        player.sendMessage(MM.deserialize(cfg.locateUnheldMessage));
                     }
                     gui.close(player);
                 }
             });
     }
 
-    private GuiItem getAuditLogsItem() {
-        List<Component> lore = new ArrayList<>();
-        lore.add(AUDIT_LOGS_LORE_HEADER);
+    private GuiItem getAuditLogsItem(DashboardConfig dashCfg) {
+        final DashboardConfig.AuditLogsSettings cfg = dashCfg.auditLogs;
+        final List<Component> lore = new ArrayList<>();
+        lore.add(MM.deserialize(cfg.loreHeader));
         lore.add(Component.empty());
 
-        List<TransitionLog> logs = plugin.getEggAuditService().getCachedLogs();
+        final List<TransitionLog> logs = plugin.getEggAuditService().getCachedLogs();
         if (logs.isEmpty()) {
-            lore.add(AUDIT_LOGS_EMPTY);
+            lore.add(MM.deserialize(cfg.emptyMessage));
         } else {
             for (TransitionLog log : logs) {
-                String timeStr = TIME_FORMAT.format(java.time.Instant.ofEpochMilli(log.loggedAt()));
+                final String timeStr = TIME_FORMAT.format(java.time.Instant.ofEpochMilli(log.loggedAt()));
                 String playerPart = "";
                 if (log.playerUuid() != null) {
-                    String name = Bukkit.getOfflinePlayer(log.playerUuid()).getName();
-                    playerPart = " by <gold>" + (name != null ? name : log.playerUuid().toString().substring(0, 8)) + "</gold>";
+                    final String name = Bukkit.getOfflinePlayer(log.playerUuid()).getName();
+                    final String holderName = name != null ? name : log.playerUuid().toString().substring(0, 8);
+                    playerPart = cfg.playerInfoFormat.replace("{player}", holderName);
                 }
-                String logLine = String.format("<dark_gray>[%s]</dark_gray> <yellow>%s%s</yellow> at <gray>%s (%d, %d, %d)</gray>",
-                    timeStr,
-                    log.actionType(),
-                    playerPart,
-                    log.worldName(),
-                    (int)log.x(),
-                    (int)log.y(),
-                    (int)log.z()
-                );
+                final String logLine = cfg.logLineFormat
+                    .replace("{time}", timeStr)
+                    .replace("{action}", log.actionType())
+                    .replace("{player_info}", playerPart)
+                    .replace("{world}", log.worldName())
+                    .replace("{x}", String.valueOf((int) log.x()))
+                    .replace("{y}", String.valueOf((int) log.y()))
+                    .replace("{z}", String.valueOf((int) log.z()));
                 lore.add(MM.deserialize(logLine));
             }
         }
 
-        return PaperItemBuilder.from(Material.BOOK)
-            .name(AUDIT_LOGS_NAME)
+        Material logsMaterial = Material.matchMaterial(cfg.material);
+        if (logsMaterial == null) {
+            logsMaterial = Material.BOOK;
+        }
+
+        return PaperItemBuilder.from(logsMaterial)
+            .name(MM.deserialize(cfg.displayName))
             .lore(lore)
             .asGuiItem();
     }

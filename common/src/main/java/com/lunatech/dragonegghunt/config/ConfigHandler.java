@@ -19,6 +19,7 @@ public class ConfigHandler implements Reloadable {
 
     private PluginConfig cfg;
     private DatabaseConfig databaseCfg;
+    private DashboardConfig dashboardCfg;
 
     /**
      * Instantiates a new Config handler.
@@ -56,6 +57,13 @@ public class ConfigHandler implements Reloadable {
                     .registerExact(StringObjectMapSerializer.TYPE_TOKEN, StringObjectMapSerializer.INSTANCE);
             })
             .build(DatabaseConfig.class);
+
+        dashboardCfg = new ConfigLoader()
+            .withLogger(logger)
+            .withDirectory()
+            .withPath(configDir.resolve("dashboard.yml"))
+            .withHeader("Egg Hunt Admin Dashboard GUI configuration")
+            .build(DashboardConfig.class);
     }
 
     /**
@@ -80,7 +88,13 @@ public class ConfigHandler implements Reloadable {
             })
             .build(DatabaseConfig.class);
 
-        return loadedCfg != null && loadedDbCfg != null;
+        DashboardConfig loadedDashboardCfg = new ConfigLoader()
+            .withDirectory()
+            .withPath(configDir.resolve("dashboard.yml"))
+            .withHeader("Egg Hunt Admin Dashboard GUI configuration")
+            .build(DashboardConfig.class);
+
+        return loadedCfg != null && loadedDbCfg != null && loadedDashboardCfg != null;
     }
 
     /**
@@ -99,5 +113,14 @@ public class ConfigHandler implements Reloadable {
      */
     public DatabaseConfig getDatabaseConfig() {
         return databaseCfg;
+    }
+
+    /**
+     * Gets dashboard config object.
+     *
+     * @return the config object
+     */
+    public DashboardConfig getDashboardConfig() {
+        return dashboardCfg;
     }
 }
