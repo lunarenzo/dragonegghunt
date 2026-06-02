@@ -34,6 +34,7 @@ dependencies {
     api(libs.threadutil.bukkit)
 
     // Plugin dependencies
+    implementation(libs.bstats)
     compileOnly(libs.placeholderapi) {
         exclude("me.clip.placeholderapi.libs", "kyori")
     }
@@ -97,6 +98,7 @@ tasks {
         reloc("dev.triumphteam.gui", "triumphgui")
         reloc("net.kyori.adventure.platform", "kyori.adventure.platform")
         reloc("com.zaxxer.hikari", "hikaricp")
+        reloc("org.bstats", "bstats")
 
         reloc("io.leangen.geantyref", "geantyref")
         reloc("org.yaml", "yaml")
