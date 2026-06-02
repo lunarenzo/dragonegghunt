@@ -33,6 +33,7 @@
       },
       "setholder": {
         "invalid-player": "<red>Invalid player specified.",
+        "already-holder": "<red>That player is already carrying the Alpha Dragon Egg.",
         "success": "<green>Set <yellow><player> <green>as the holder and gave them a Dragon Egg."
       },
       "override": {

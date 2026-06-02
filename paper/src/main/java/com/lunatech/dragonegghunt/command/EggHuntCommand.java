@@ -105,6 +105,11 @@ public class EggHuntCommand extends Command {
             return;
         }
 
+        if (hasAlphaEgg(target)) {
+            sender.sendMessage(Translation.as("commands.egghunt.setholder.already-holder"));
+            return;
+        }
+
         // Add tagged Alpha Egg to inventory
         ItemStack egg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
         target.getInventory().addItem(egg);
@@ -115,6 +120,33 @@ public class EggHuntCommand extends Command {
                 .with("player", target.getName())
                 .build()
         );
+    }
+
+    private boolean isAlphaEgg(ItemStack item) {
+        if (item == null || item.getType() != Material.DRAGON_EGG) {
+            return false;
+        }
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER);
+    }
+
+    private boolean hasAlphaEgg(Player player) {
+        // Check main inventory storage contents (slots 0-35)
+        for (ItemStack item : player.getInventory().getStorageContents()) {
+            if (isAlphaEgg(item)) {
+                return true;
+            }
+        }
+        // Check offhand slot
+        if (isAlphaEgg(player.getInventory().getItemInOffHand())) {
+            return true;
+        }
+        // Check cursor item
+        org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
+        if (openInv != null && isAlphaEgg(openInv.getCursor())) {
+            return true;
+        }
+        return false;
     }
 
     private void executorOverride(CommandSender sender, CommandArguments args) {
