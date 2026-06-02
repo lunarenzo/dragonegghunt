@@ -37,7 +37,6 @@ public class EggHuntCommand extends Command {
     public CommandAPICommand command() {
         return new CommandAPICommand("egghunt")
             .withHelp("Egg Hunt controls", "Egg Hunt controls")
-            .withPermission(Permissions.COMMAND_INFO)
             .withSubcommands(
                 new CommandAPICommand("info")
                     .withHelp("View current holder state", "View current holder state")
@@ -88,6 +87,10 @@ public class EggHuntCommand extends Command {
     }
 
     private void executorInfo(CommandSender sender, CommandArguments args) {
+        if (!sender.hasPermission(Permissions.COMMAND_INFO)) {
+            sender.sendMessage(ColorParser.of("<red>I'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error.").build());
+            return;
+        }
         EggState state = eggTrackerService.getState();
         if (state instanceof EggState.Held held) {
             String name = Bukkit.getOfflinePlayer(held.holderUuid()).getName();
