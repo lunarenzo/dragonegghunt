@@ -1,9 +1,7 @@
 package com.lunatech.dragonegghunt.hook;
 
 import com.lunatech.dragonegghunt.hook.bstats.BStatsHook;
-import com.lunatech.dragonegghunt.hook.packetevents.PacketEventsHook;
 import com.lunatech.dragonegghunt.hook.placeholderapi.PAPIHook;
-import com.lunatech.dragonegghunt.hook.vault.VaultHook;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,9 +11,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum Hook {
     BStats(BStatsHook.class, null, false),
-    PAPI(PAPIHook.class, "PlaceholderAPI", true),
-    PacketEvents(PacketEventsHook.class, "PacketEvents", true),
-    Vault(VaultHook.class, "Vault", true);
+    PAPI(PAPIHook.class, "PlaceholderAPI", true);
 
     private final @NotNull Class<? extends AbstractHook> hookClass; // The hook class used by this hook
     private final @Nullable String pluginName; // The plugin name used by this hook or null if not applicable
@@ -128,25 +124,5 @@ public enum Hook {
     @NotNull
     public static PAPIHook getPAPIHook() {
         return (PAPIHook) Hook.PAPI.get();
-    }
-
-    /**
-     * Gets vault hook.
-     *
-     * @return the vault hook
-     */
-    @NotNull
-    public static VaultHook getVaultHook() {
-        return (VaultHook) Hook.Vault.get();
-    }
-
-    /**
-     * Gets PacketEvents hook.
-     *
-     * @return the PacketEvents hook
-     */
-    @NotNull
-    public static PacketEventsHook getPacketEventsHook() {
-        return (PacketEventsHook) Hook.PacketEvents.get();
     }
 }

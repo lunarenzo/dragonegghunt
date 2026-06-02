@@ -35,7 +35,6 @@ dependencies {
 
     // Plugin dependencies
     implementation(libs.bstats)
-    compileOnly(libs.packetevents)
     compileOnly(libs.placeholderapi) {
         exclude("me.clip.placeholderapi.libs", "kyori")
     }
@@ -121,7 +120,6 @@ tasks {
 
         // Automatically install dependencies
         downloadPlugins {
-            github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
             github("PlaceholderAPI", "PlaceholderAPI", "2.12.2", "PlaceholderAPI-2.12.2.jar")
             hangar("ViaVersion", "5.8.1")
             hangar("ViaBackwards", "5.8.1")
@@ -146,7 +144,7 @@ bukkit { // Options: https://docs.eldoria.de/pluginyml/bukkit/
     // Misc properties
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD // STARTUP or POSTWORLD
     depend = listOf()
-    softDepend = listOf("Vault", "PlaceholderAPI")
+    softDepend = listOf("PlaceholderAPI")
     loadBefore = listOf()
     provides = listOf()
 }
@@ -171,10 +169,6 @@ paper { // Options: https://docs.eldoria.de/pluginyml/paper/
     hasOpenClassloader = true
     bootstrapDependencies {}
     serverDependencies {
-        register("Vault") {
-            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-            required = false
-        }
         register("PlaceholderAPI") {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             required = false

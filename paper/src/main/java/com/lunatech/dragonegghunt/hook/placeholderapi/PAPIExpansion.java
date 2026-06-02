@@ -41,9 +41,36 @@ public class PAPIExpansion extends PlaceholderExpansion {
 
     @Override
     public @Nullable String onRequest(OfflinePlayer p, @NotNull String params) {
+        com.lunatech.dragonegghunt.state.EggState state = plugin.getEggTrackerService().getState();
         return switch (params) {
-            case "example" -> "placeholder text";
-            case "example2" -> "placeholder text2";
+            case "holder" -> {
+                if (state instanceof com.lunatech.dragonegghunt.state.EggState.Held held) {
+                    String name = org.bukkit.Bukkit.getOfflinePlayer(held.holderUuid()).getName();
+                    yield name != null ? name : "Unknown";
+                }
+                yield "None";
+            }
+            case "state" -> {
+                if (state instanceof com.lunatech.dragonegghunt.state.EggState.Held) {
+                    yield "Held";
+                } else if (state instanceof com.lunatech.dragonegghunt.state.EggState.Placed) {
+                    yield "Placed";
+                } else if (state instanceof com.lunatech.dragonegghunt.state.EggState.Dropped) {
+                    yield "Dropped";
+                } else {
+                    yield "Unheld";
+                }
+            }
+            case "location" -> {
+                if (state instanceof com.lunatech.dragonegghunt.state.EggState.Placed placed) {
+                    String worldDisp = com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, placed.worldName());
+                    yield String.format("%d, %d, %d (%s)", (int) placed.x(), (int) placed.y(), (int) placed.z(), worldDisp);
+                } else if (state instanceof com.lunatech.dragonegghunt.state.EggState.Dropped dropped) {
+                    String worldDisp = com.lunatech.dragonegghunt.utility.WorldUtil.getWorldDisplayName(plugin, dropped.worldName());
+                    yield String.format("%d, %d, %d (%s)", (int) dropped.x(), (int) dropped.y(), (int) dropped.z(), worldDisp);
+                }
+                yield "unknown";
+            }
             default -> null;
         };
     }
