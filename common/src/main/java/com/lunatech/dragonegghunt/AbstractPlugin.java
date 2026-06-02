@@ -4,20 +4,20 @@ import com.lunatech.dragonegghunt.config.ConfigHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractExample extends JavaPlugin {
-    private static AbstractExample instance;
+public abstract class AbstractPlugin extends JavaPlugin {
+    private static AbstractPlugin instance;
 
     /**
      * Gets plugin instance.
      *
      * @return the plugin instance
      */
-    public static AbstractExample getInstance() {
-        return AbstractExample.instance;
+    public static AbstractPlugin getInstance() {
+        return AbstractPlugin.instance;
     }
 
-    AbstractExample() {
-        AbstractExample.instance = this;
+    AbstractPlugin() {
+        AbstractPlugin.instance = this;
     }
 
     /**
@@ -36,4 +36,3 @@ public abstract class AbstractExample extends JavaPlugin {
 
     public abstract @NotNull com.lunatech.dragonegghunt.service.EggAuditService getEggAuditService();
 }
-

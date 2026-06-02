@@ -1,8 +1,8 @@
 package com.lunatech.dragonegghunt;
 
-import com.lunatech.dragonegghunt.api.ExampleAPI;
+import com.lunatech.dragonegghunt.api.DragonEggHuntAPI;
 
-class DragonEggHuntAPIProvider extends ExampleAPI implements Reloadable {
+class DragonEggHuntAPIProvider extends DragonEggHuntAPI implements Reloadable {
     private final DragonEggHunt plugin;
 
     DragonEggHuntAPIProvider(DragonEggHunt plugin) {

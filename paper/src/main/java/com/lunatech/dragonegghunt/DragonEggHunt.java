@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt;
 
-import com.lunatech.dragonegghunt.api.ExampleAPI;
+import com.lunatech.dragonegghunt.api.DragonEggHuntAPI;
 import com.lunatech.dragonegghunt.command.CommandHandler;
 import com.lunatech.dragonegghunt.config.ConfigHandler;
 import com.lunatech.dragonegghunt.cooldown.CooldownHandler;
@@ -88,7 +88,6 @@ public class DragonEggHunt extends AbstractExample {
             listenerHandler,
             updateHandler,
             schedulerHandler,
-            cooldownHandler,
             cooldownHandler,
             apiHandler
         );
@@ -336,7 +335,7 @@ public class DragonEggHunt extends AbstractExample {
         return updateHandler;
     }
 
-    public @NotNull ExampleAPI getApiHandler() {
+    public @NotNull DragonEggHuntAPI getApiHandler() {
         return apiHandler;
     }
 
