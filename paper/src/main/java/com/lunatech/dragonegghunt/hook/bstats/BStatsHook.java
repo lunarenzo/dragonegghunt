@@ -4,6 +4,7 @@ import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +31,7 @@ public class BStatsHook extends AbstractHook {
             Metrics metrics = new Metrics(getPlugin(), BSTATS_ID);
 
             // Add custom charts to report useful configuration stats
-            metrics.addCustomChart(new Metrics.SimplePie("tracking_method", () -> {
+            metrics.addCustomChart(new SimplePie("tracking_method", () -> {
                 try {
                     return getPlugin().getConfigHandler().getConfig().dragonEggTracker.trackingMethod;
                 } catch (Exception e) {
@@ -38,7 +39,7 @@ public class BStatsHook extends AbstractHook {
                 }
             }));
 
-            metrics.addCustomChart(new Metrics.SimplePie("override_region_protection", () -> {
+            metrics.addCustomChart(new SimplePie("override_region_protection", () -> {
                 try {
                     return String.valueOf(getPlugin().getConfigHandler().getConfig().dragonEggTracker.overrideRegionProtection);
                 } catch (Exception e) {
@@ -46,7 +47,7 @@ public class BStatsHook extends AbstractHook {
                 }
             }));
 
-            metrics.addCustomChart(new Metrics.SimplePie("allow_container_storage", () -> {
+            metrics.addCustomChart(new SimplePie("allow_container_storage", () -> {
                 try {
                     return String.valueOf(getPlugin().getConfigHandler().getConfig().dragonEggTracker.allowContainerStorage);
                 } catch (Exception e) {
