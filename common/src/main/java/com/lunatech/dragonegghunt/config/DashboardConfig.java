@@ -69,13 +69,13 @@ public class DashboardConfig implements VersionedConfig {
         public int rows = 3;
 
         @Comment("The slot index for the Egg Status item (0-based)")
-        public int eggStatusSlot = 10;
+        public int eggStatusSlot = 11;
 
         @Comment("The slot index for the Admin Actions item (0-based)")
-        public int adminActionsSlot = 12;
+        public int adminActionsSlot = 13;
 
         @Comment("The slot index for the Transition Audit Logs item (0-based)")
-        public int auditLogsSlot = 14;
+        public int auditLogsSlot = 15;
 
         @Comment("The material used for filling empty background slots")
         public String backgroundMaterial = "GRAY_STAINED_GLASS_PANE";
