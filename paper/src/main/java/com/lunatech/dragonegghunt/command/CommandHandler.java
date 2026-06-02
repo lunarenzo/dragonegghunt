@@ -38,11 +38,6 @@ public class CommandHandler implements Reloadable {
         CommandAPI.onEnable();
 
         // Register commands here
-        new ExampleCommand(plugin)
-            .command()
-            .withAliases()
-            .register();
-
         new EggHuntCommand(this.plugin)
             .command()
             .register();
