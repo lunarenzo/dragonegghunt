@@ -88,7 +88,7 @@ public class EggHuntCommand extends Command {
 
     private void executorInfo(CommandSender sender, CommandArguments args) {
         if (!sender.hasPermission(Permissions.COMMAND_INFO)) {
-            sender.sendMessage(ColorParser.of("<red>I'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error.").build());
+            sender.sendMessage(Translation.as("commands.egghunt.no-permission"));
             return;
         }
         EggState state = eggTrackerService.getState();
