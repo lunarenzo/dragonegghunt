@@ -42,7 +42,7 @@ public final class AdminDashboard {
         final DashboardConfig dashCfg = plugin.getConfigHandler().getDashboardConfig();
         final DashboardConfig.GuiSettings guiCfg = dashCfg.gui;
 
-        // Custom Title component
+        // Custom Title component (GUI Titles are not italicized by default in Minecraft)
         final Component titleComponent = MM.deserialize(guiCfg.title);
 
         // Create GUI
@@ -59,7 +59,7 @@ public final class AdminDashboard {
         }
         final Component bgName = guiCfg.backgroundDisplayName.isEmpty() 
             ? Component.empty() 
-            : MM.deserialize(guiCfg.backgroundDisplayName);
+            : MM.deserialize("<!italic>" + guiCfg.backgroundDisplayName);
 
         final GuiItem border = PaperItemBuilder.from(bgMaterial)
             .name(bgName)
@@ -84,7 +84,7 @@ public final class AdminDashboard {
         final List<Component> lore = new ArrayList<>();
         org.bukkit.Location targetLoc = null;
 
-        lore.add(MM.deserialize(cfg.loreHeader));
+        lore.add(MM.deserialize("<!italic>" + cfg.loreHeader));
         lore.add(Component.empty());
 
         if (state instanceof EggState.Held held) {
@@ -99,7 +99,7 @@ public final class AdminDashboard {
             final String locStr = isOnline ? formatLocation(targetLoc) : "unknown";
 
             for (String line : cfg.heldFormat) {
-                lore.add(MM.deserialize(line
+                lore.add(MM.deserialize("<!italic>" + line
                     .replace("{player}", holderName)
                     .replace("{status}", holderStatus)
                     .replace("{location}", locStr)
@@ -111,7 +111,7 @@ public final class AdminDashboard {
                 targetLoc = new org.bukkit.Location(world, placed.x(), placed.y(), placed.z());
             }
             for (String line : cfg.placedFormat) {
-                lore.add(MM.deserialize(line
+                lore.add(MM.deserialize("<!italic>" + line
                     .replace("{world}", placed.worldName())
                     .replace("{x}", String.valueOf((int) placed.x()))
                     .replace("{y}", String.valueOf((int) placed.y()))
@@ -123,7 +123,7 @@ public final class AdminDashboard {
             if (entity != null && entity.isValid()) {
                 targetLoc = entity.getLocation();
                 for (String line : cfg.droppedFormat) {
-                    lore.add(MM.deserialize(line
+                    lore.add(MM.deserialize("<!italic>" + line
                         .replace("{world}", targetLoc.getWorld().getName())
                         .replace("{x}", String.valueOf((int) targetLoc.getX()))
                         .replace("{y}", String.valueOf((int) targetLoc.getY()))
@@ -133,7 +133,7 @@ public final class AdminDashboard {
                 }
             } else {
                 for (String line : cfg.droppedUnloadedFormat) {
-                    lore.add(MM.deserialize(line
+                    lore.add(MM.deserialize("<!italic>" + line
                         .replace("{world}", dropped.worldName())
                         .replace("{x}", String.valueOf((int) dropped.x()))
                         .replace("{y}", String.valueOf((int) dropped.y()))
@@ -143,13 +143,13 @@ public final class AdminDashboard {
             }
         } else {
             for (String line : cfg.unheldFormat) {
-                lore.add(MM.deserialize(line));
+                lore.add(MM.deserialize("<!italic>" + line));
             }
         }
 
         if (targetLoc != null && !cfg.teleportActionLine.isEmpty()) {
             lore.add(Component.empty());
-            lore.add(MM.deserialize(cfg.teleportActionLine));
+            lore.add(MM.deserialize("<!italic>" + cfg.teleportActionLine));
         }
 
         final org.bukkit.Location finalLoc = targetLoc;
@@ -160,7 +160,7 @@ public final class AdminDashboard {
         }
 
         return PaperItemBuilder.from(eggMaterial)
-            .name(MM.deserialize(cfg.displayName))
+            .name(MM.deserialize("<!italic>" + cfg.displayName))
             .lore(lore)
             .asGuiItem(event -> {
                 if (finalLoc != null) {
@@ -180,13 +180,13 @@ public final class AdminDashboard {
     private GuiItem getAdminActionsItem(Player player, Gui gui, DashboardConfig dashCfg) {
         final DashboardConfig.AdminActionsSettings cfg = dashCfg.adminActions;
         final List<Component> lore = new ArrayList<>();
-        lore.add(MM.deserialize(cfg.loreHeader));
+        lore.add(MM.deserialize("<!italic>" + cfg.loreHeader));
         lore.add(Component.empty());
         if (!cfg.leftClickDescription.isEmpty()) {
-            lore.add(MM.deserialize(cfg.leftClickDescription));
+            lore.add(MM.deserialize("<!italic>" + cfg.leftClickDescription));
         }
         if (!cfg.rightClickDescription.isEmpty()) {
-            lore.add(MM.deserialize(cfg.rightClickDescription));
+            lore.add(MM.deserialize("<!italic>" + cfg.rightClickDescription));
         }
 
         Material actionMaterial = Material.matchMaterial(cfg.material);
@@ -195,7 +195,7 @@ public final class AdminDashboard {
         }
 
         return PaperItemBuilder.from(actionMaterial)
-            .name(MM.deserialize(cfg.displayName))
+            .name(MM.deserialize("<!italic>" + cfg.displayName))
             .lore(lore)
             .asGuiItem(event -> {
                 if (event.isLeftClick()) {
@@ -248,12 +248,12 @@ public final class AdminDashboard {
     private GuiItem getAuditLogsItem(DashboardConfig dashCfg) {
         final DashboardConfig.AuditLogsSettings cfg = dashCfg.auditLogs;
         final List<Component> lore = new ArrayList<>();
-        lore.add(MM.deserialize(cfg.loreHeader));
+        lore.add(MM.deserialize("<!italic>" + cfg.loreHeader));
         lore.add(Component.empty());
 
         final List<TransitionLog> logs = plugin.getEggAuditService().getCachedLogs();
         if (logs.isEmpty()) {
-            lore.add(MM.deserialize(cfg.emptyMessage));
+            lore.add(MM.deserialize("<!italic>" + cfg.emptyMessage));
         } else {
             for (TransitionLog log : logs) {
                 final String timeStr = TIME_FORMAT.format(java.time.Instant.ofEpochMilli(log.loggedAt()));
@@ -271,7 +271,7 @@ public final class AdminDashboard {
                     .replace("{x}", String.valueOf((int) log.x()))
                     .replace("{y}", String.valueOf((int) log.y()))
                     .replace("{z}", String.valueOf((int) log.z()));
-                lore.add(MM.deserialize(logLine));
+                lore.add(MM.deserialize("<!italic>" + logLine));
             }
         }
 
@@ -281,7 +281,7 @@ public final class AdminDashboard {
         }
 
         return PaperItemBuilder.from(logsMaterial)
-            .name(MM.deserialize(cfg.displayName))
+            .name(MM.deserialize("<!italic>" + cfg.displayName))
             .lore(lore)
             .asGuiItem();
     }
