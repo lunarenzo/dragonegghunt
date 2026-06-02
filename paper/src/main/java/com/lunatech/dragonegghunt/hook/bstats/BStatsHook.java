@@ -9,7 +9,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A hook to interface with <a href="https://github.com/Bastian/bstats-metrics">BStats</a>.
+ * A hook to interface with bStats metrics.
  */
 public class BStatsHook extends AbstractHook {
     private final static int BSTATS_ID = 31754;
