@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
  * A hook to interface with <a href="https://github.com/Bastian/bstats-metrics">BStats</a>.
  */
 public class BStatsHook extends AbstractHook {
-    private final static int BSTATS_ID = 0; // Signup to BStats and register your new plugin here: https://bstats.org/getting-started, replace the id with you new one!
+    private final static int BSTATS_ID = 31754;
     private @Nullable Metrics hook;
 
     /**
@@ -27,7 +27,34 @@ public class BStatsHook extends AbstractHook {
     public void onEnable(AbstractPlugin plugin) {
         // Catch startup errors for bstats
         try {
-            setHook(new Metrics(getPlugin(), BSTATS_ID));
+            Metrics metrics = new Metrics(getPlugin(), BSTATS_ID);
+
+            // Add custom charts to report useful configuration stats
+            metrics.addCustomChart(new Metrics.SimplePie("tracking_method", () -> {
+                try {
+                    return getPlugin().getConfigHandler().getConfig().dragonEggTracker.trackingMethod;
+                } catch (Exception e) {
+                    return "BOTH";
+                }
+            }));
+
+            metrics.addCustomChart(new Metrics.SimplePie("override_region_protection", () -> {
+                try {
+                    return String.valueOf(getPlugin().getConfigHandler().getConfig().dragonEggTracker.overrideRegionProtection);
+                } catch (Exception e) {
+                    return "false";
+                }
+            }));
+
+            metrics.addCustomChart(new Metrics.SimplePie("allow_container_storage", () -> {
+                try {
+                    return String.valueOf(getPlugin().getConfigHandler().getConfig().dragonEggTracker.allowContainerStorage);
+                } catch (Exception e) {
+                    return "false";
+                }
+            }));
+
+            setHook(metrics);
         } catch (Exception ignored) {
             setHook(null);
         }

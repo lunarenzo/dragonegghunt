@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import com.lunatech.dragonegghunt.constant.Permissions;
 
 /**
  * Run update checks against your release platform.
@@ -82,10 +83,11 @@ public class UpdateHandler implements Reloadable {
                 if (watcher.isLatest())
                     return;
 
-                if (!Cfg.get().updateChecker.enabled || !Cfg.get().updateChecker.op)
+                if (!Cfg.get().updateChecker.enabled)
                     return;
 
-                if (!p.isOp())
+                boolean notify = p.hasPermission(Permissions.UPDATE_NOTIFY) || (Cfg.get().updateChecker.op && p.isOp());
+                if (!notify)
                     return;
 
                 if (watcher.getLatestVersion() == null)

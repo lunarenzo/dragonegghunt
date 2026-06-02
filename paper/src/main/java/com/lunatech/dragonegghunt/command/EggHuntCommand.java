@@ -16,9 +16,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.UUID;
+import com.lunatech.dragonegghunt.constant.Permissions;
 
-import static com.lunatech.dragonegghunt.command.CommandHandler.BASE_PERM;
+import java.util.UUID;
 
 /**
  * Command for managing the Dragon Egg Tracker gameplay and configuration.
@@ -37,43 +37,51 @@ public class EggHuntCommand extends Command {
     public CommandAPICommand command() {
         return new CommandAPICommand("egghunt")
             .withHelp("Egg Hunt controls", "Egg Hunt controls")
-            .withPermission(BASE_PERM)
+            .withPermission(Permissions.COMMAND_INFO)
             .withSubcommands(
                 new CommandAPICommand("info")
                     .withHelp("View current holder state", "View current holder state")
+                    .withPermission(Permissions.COMMAND_INFO)
                     .executes(this::executorInfo),
                 new CommandAPICommand("setholder")
                     .withHelp("Set a player as the egg holder", "Set a player as the egg holder")
                     .withArguments(new EntitySelectorArgument.OnePlayer("player"))
+                    .withPermission(Permissions.COMMAND_SETHOLDER)
                     .executes(this::executorSetHolder),
                 new CommandAPICommand("override")
                     .withHelp("Toggle bypass regional protections.", "Toggle bypass regional protections.")
                     .withArguments(new BooleanArgument("value"))
+                    .withPermission(Permissions.COMMAND_OVERRIDE)
                     .executes(this::executorOverride),
                 new CommandAPICommand("reset")
                     .withHelp("Reset the Dragon Egg state to UNHELD.", "Reset the Dragon Egg state to UNHELD.")
+                    .withPermission(Permissions.COMMAND_RESET)
                     .executes(this::executorReset),
                 new CommandAPICommand("reload")
                     .withHelp("Reload the plugin configuration and data safely.", "Reload the plugin configuration and data safely.")
-                    .withPermission(BASE_PERM + ".reload")
+                    .withPermission(Permissions.COMMAND_RELOAD)
                     .executes(this::executorReload)
                     .withSubcommands(
                         new CommandAPICommand("all")
                             .withHelp("Reload all components (config, translations, database, messaging).", "Reload all components.")
+                            .withPermission(Permissions.COMMAND_RELOAD)
                             .executes(this::executorReload),
                         new CommandAPICommand("config")
                             .withHelp("Reload only the config file.", "Reload only config.")
+                            .withPermission(Permissions.COMMAND_RELOAD)
                             .executes(this::executorReloadConfig),
                         new CommandAPICommand("lang")
                             .withHelp("Reload only translation files.", "Reload only translation.")
+                            .withPermission(Permissions.COMMAND_RELOAD)
                             .executes(this::executorReloadLang),
                         new CommandAPICommand("database")
                             .withHelp("Reload database connections and messaging.", "Reload database.")
+                            .withPermission(Permissions.COMMAND_RELOAD)
                             .executes(this::executorReloadDatabase)
                     ),
                 new CommandAPICommand("dashboard")
                     .withHelp("Open the administrative dashboard GUI", "Open the administrative dashboard GUI")
-                    .withPermission(BASE_PERM + ".admin")
+                    .withPermission(Permissions.COMMAND_DASHBOARD)
                     .executesPlayer(this::executorDashboard)
             )
             .executes(this::executorInfo);
