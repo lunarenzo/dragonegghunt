@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.updatechecker;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.utility.Cfg;
@@ -39,7 +39,7 @@ public class UpdateHandler implements Reloadable {
      * On plugin enable.
      */
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         final boolean shouldLog = Cfg.get().updateChecker.enabled && Cfg.get().updateChecker.console;
 
         // Fetch the latest version and send message to console

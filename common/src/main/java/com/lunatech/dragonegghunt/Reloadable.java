@@ -7,19 +7,19 @@ public interface Reloadable {
     /**
      * On plugin load.
      */
-    default void onLoad(AbstractExample plugin) {
+    default void onLoad(AbstractPlugin plugin) {
     }
 
     /**
      * On plugin enable.
      */
-    default void onEnable(AbstractExample plugin) {
+    default void onEnable(AbstractPlugin plugin) {
     }
 
     /**
      * On plugin disable.
      */
-    default void onDisable(AbstractExample plugin) {
+    default void onDisable(AbstractPlugin plugin) {
     }
 
 }

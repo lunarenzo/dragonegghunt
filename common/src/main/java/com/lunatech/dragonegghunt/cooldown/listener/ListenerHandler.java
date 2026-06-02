@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.cooldown.listener;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.Reloadable;
 import org.bukkit.event.Listener;
 
@@ -12,19 +12,19 @@ import java.util.List;
  */
 @SuppressWarnings("FieldCanBeLocal")
 public class ListenerHandler implements Reloadable {
-    private final AbstractExample plugin;
+    private final AbstractPlugin plugin;
     private final List<Listener> listeners = new ArrayList<>();
 
-    public ListenerHandler(AbstractExample plugin) {
+    public ListenerHandler(AbstractPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         listeners.clear();
         listeners.add(new CooldownListener(plugin));
 
@@ -34,6 +34,6 @@ public class ListenerHandler implements Reloadable {
     }
 
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
     }
 }

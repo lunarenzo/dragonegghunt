@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.messaging.broker.pluginmsg;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.messaging.MessageConsumer;
 import com.lunatech.dragonegghunt.messaging.broker.AbstractBroker;
 import com.lunatech.dragonegghunt.messaging.config.MessagingConfig;
@@ -19,13 +19,13 @@ import java.util.Optional;
  */
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public final class PluginBroker extends AbstractBroker implements PluginMessageListener {
-    private final AbstractExample plugin;
+    private final AbstractPlugin plugin;
     private final String name;
     private final String channelName;
 
     public PluginBroker(MessageConsumer messageConsumer, String name) {
         super(messageConsumer);
-        this.plugin = AbstractExample.getInstance();
+        this.plugin = AbstractPlugin.getInstance();
         this.name = name;
         this.channelName = "%s:message".formatted(name.toLowerCase());
     }

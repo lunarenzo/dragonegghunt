@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.hook.placeholderapi;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
 import com.lunatech.dragonegghunt.hook.Hook;
@@ -21,7 +21,7 @@ public class PAPIHook extends AbstractHook {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         if (!isHookLoaded())
             return;
 
@@ -30,7 +30,7 @@ public class PAPIHook extends AbstractHook {
     }
 
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         if (!isHookLoaded())
             return;
 

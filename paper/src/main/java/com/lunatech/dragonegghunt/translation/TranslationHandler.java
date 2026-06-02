@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.translation;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.config.ConfigHandler;
 import io.github.milkdrinkers.colorparser.paper.ColorParser;
@@ -20,7 +20,7 @@ public class TranslationHandler implements Reloadable {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         Translation.initialize(TranslationConfig.builder() // Initialize word-weaver
             .translationDirectory(plugin.getDataPath().resolve("lang"))
             .resourcesDirectory(Path.of("lang"))

@@ -24,7 +24,7 @@ import java.util.List;
  * Main class.
  */
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
-public class DragonEggHunt extends AbstractExample {
+public class DragonEggHunt extends AbstractPlugin {
     private static DragonEggHunt instance;
 
     // Handlers/Managers

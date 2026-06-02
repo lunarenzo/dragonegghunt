@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.messaging;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.AbstractService;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.messaging.adapter.receiver.BukkitReceiverAdapter;
@@ -81,7 +81,7 @@ public final class MessagingHandler extends AbstractService implements Reloadabl
     }
 
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
         if (config == null)
             this.config = MessagingConfig.fromConfig(plugin.getConfigHandler().getDatabaseConfig());
 
@@ -93,7 +93,7 @@ public final class MessagingHandler extends AbstractService implements Reloadabl
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         try {
             scheduleTasks();
         } catch (Exception e) {
@@ -102,7 +102,7 @@ public final class MessagingHandler extends AbstractService implements Reloadabl
     }
 
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         try {
             doShutdown();
         } catch (Exception e) {

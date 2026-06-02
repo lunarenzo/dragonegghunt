@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.listener;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import org.bukkit.event.Listener;
@@ -25,7 +25,7 @@ public class ListenerHandler implements Reloadable {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         listeners.clear(); // Clear the list to avoid duplicate listeners when reloading the plugin
 //        listeners.add(new ExampleListener());
         listeners.add(new EggMovementListener(this.plugin));

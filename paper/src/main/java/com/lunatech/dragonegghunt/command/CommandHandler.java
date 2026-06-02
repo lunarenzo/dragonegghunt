@@ -2,7 +2,7 @@ package com.lunatech.dragonegghunt.command;
 
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIPaperConfig;
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 
@@ -23,7 +23,7 @@ public class CommandHandler implements Reloadable {
     }
 
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
         CommandAPI.onLoad(
             new CommandAPIPaperConfig(plugin)
                 .silentLogs(true)
@@ -31,7 +31,7 @@ public class CommandHandler implements Reloadable {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         if (!CommandAPI.isLoaded())
             return;
 
@@ -45,7 +45,7 @@ public class CommandHandler implements Reloadable {
     }
 
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         if (!CommandAPI.isLoaded())
             return;
 

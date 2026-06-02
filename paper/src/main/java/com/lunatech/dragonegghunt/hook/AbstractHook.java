@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.hook;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import org.bukkit.Bukkit;
@@ -36,21 +36,21 @@ public abstract class AbstractHook implements Reloadable {
      * On plugin load.
      */
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
     }
 
     /**
      * On plugin enable.
      */
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
     }
 
     /**
      * On plugin disable.
      */
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
     }
 
     /**

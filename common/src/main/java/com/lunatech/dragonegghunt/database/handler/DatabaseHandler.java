@@ -1,7 +1,7 @@
 package com.lunatech.dragonegghunt.database.handler;
 
 import com.zaxxer.hikari.HikariDataSource;
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.AbstractService;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.config.ConfigHandler;
@@ -59,7 +59,7 @@ public final class DatabaseHandler extends AbstractService implements Reloadable
      * On plugin load.
      */
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
         if (config == null)
             config = DatabaseConfig.fromConfig(plugin.getConfigHandler().getDatabaseConfig(), plugin.getDataPath().resolve("database"));
 
@@ -74,7 +74,7 @@ public final class DatabaseHandler extends AbstractService implements Reloadable
      * On plugin disable.
      */
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         try {
             doShutdown();
         } catch (Exception e) {

@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.cooldown;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.cooldown.listener.ListenerHandler;
 import com.lunatech.dragonegghunt.database.Queries;
@@ -16,7 +16,7 @@ public final class CooldownHandler implements Reloadable {
     private ScheduledTask autoSaveTask;
 
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
         if (listenerHandler != null)
             return;
 
@@ -25,7 +25,7 @@ public final class CooldownHandler implements Reloadable {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         if (listenerHandler == null)
             return;
 
@@ -34,7 +34,7 @@ public final class CooldownHandler implements Reloadable {
     }
 
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         if (listenerHandler == null)
             return;
 

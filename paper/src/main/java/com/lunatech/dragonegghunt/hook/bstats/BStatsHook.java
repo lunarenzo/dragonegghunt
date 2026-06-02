@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.hook.bstats;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
 import org.bstats.bukkit.Metrics;
@@ -24,7 +24,7 @@ public class BStatsHook extends AbstractHook {
     }
 
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         // Catch startup errors for bstats
         try {
             setHook(new Metrics(getPlugin(), BSTATS_ID));
@@ -34,7 +34,7 @@ public class BStatsHook extends AbstractHook {
     }
 
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         getHook().shutdown();
         setHook(null);
     }

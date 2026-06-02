@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.config;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.config.loading.ConfigLoader;
 import com.lunatech.dragonegghunt.config.typeserializer.StringListSerializer;
@@ -13,7 +13,7 @@ import java.nio.file.Path;
  * A class that generates/loads {@literal &} provides access to a configuration file.
  */
 public class ConfigHandler implements Reloadable {
-    private final AbstractExample plugin;
+    private final AbstractPlugin plugin;
     private final Path configDir;
     private final Logger logger;
 
@@ -26,20 +26,20 @@ public class ConfigHandler implements Reloadable {
      *
      * @param plugin the plugin instance
      */
-    public ConfigHandler(AbstractExample plugin) {
+    public ConfigHandler(AbstractPlugin plugin) {
         this.plugin = plugin;
         this.configDir = plugin.getDataFolder().toPath();
         this.logger = plugin.getComponentLogger();
     }
 
-    public ConfigHandler(AbstractExample plugin, Path configDir, Logger logger) {
+    public ConfigHandler(AbstractPlugin plugin, Path configDir, Logger logger) {
         this.plugin = plugin;
         this.configDir = configDir;
         this.logger = logger;
     }
 
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
         cfg = new ConfigLoader()
             .withLogger(logger)
             .withDirectory()

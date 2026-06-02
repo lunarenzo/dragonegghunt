@@ -1,6 +1,6 @@
 package com.lunatech.dragonegghunt.hook;
 
-import com.lunatech.dragonegghunt.AbstractExample;
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.Reloadable;
 import com.lunatech.dragonegghunt.utility.Logger;
@@ -25,7 +25,7 @@ public class HookManager implements Reloadable {
      * On plugin load.
      */
     @Override
-    public void onLoad(AbstractExample plugin) {
+    public void onLoad(AbstractPlugin plugin) {
         for (Hook hook : Hook.values()) {
             try {
                 if (hook.getPluginName() != null && Bukkit.getPluginManager().getPlugin(hook.getPluginName()) == null) {
@@ -73,7 +73,7 @@ public class HookManager implements Reloadable {
      * On plugin enable.
      */
     @Override
-    public void onEnable(AbstractExample plugin) {
+    public void onEnable(AbstractPlugin plugin) {
         for (AbstractHook hook : getHooks().values()) {
             hook.onEnable(plugin);
 
@@ -87,7 +87,7 @@ public class HookManager implements Reloadable {
      * On plugin disable.
      */
     @Override
-    public void onDisable(AbstractExample plugin) {
+    public void onDisable(AbstractPlugin plugin) {
         for (AbstractHook hook : getHooks().values()) {
             hook.onDisable(plugin);
         }
