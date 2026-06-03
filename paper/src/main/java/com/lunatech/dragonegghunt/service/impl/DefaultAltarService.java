@@ -143,11 +143,11 @@ public final class DefaultAltarService implements AltarService {
 
         final var resolved = resolveAltarLocation();
         if (resolved.isEmpty()) {
-            final var dashboardCfg = plugin.getConfigHandler().getDashboardConfig().altarWorldNotLoadedMessage;
+            final var adminActions = plugin.getConfigHandler().getDashboardConfig().adminActions;
             final var descriptor = getAltarLocationDescriptor();
-            if (dashboardCfg != null && !dashboardCfg.isEmpty()) {
+            if (adminActions != null && adminActions.altarWorldNotLoadedMessage != null && !adminActions.altarWorldNotLoadedMessage.isEmpty()) {
                 admin.sendMessage(MiniMessage.miniMessage().deserialize(
-                    dashboardCfg.replace("{world}", descriptor.worldName())
+                    adminActions.altarWorldNotLoadedMessage.replace("{world}", descriptor.worldName())
                 ));
             }
             return false;
@@ -182,9 +182,9 @@ public final class DefaultAltarService implements AltarService {
         ));
 
         // Broadcast administrative message
-        final var dashboardCfg = plugin.getConfigHandler().getDashboardConfig();
-        if (dashboardCfg.respawnBroadcastMessage != null && !dashboardCfg.respawnBroadcastMessage.isEmpty()) {
-            Bukkit.broadcast(MiniMessage.miniMessage().deserialize(dashboardCfg.respawnBroadcastMessage));
+        final var adminActions = plugin.getConfigHandler().getDashboardConfig().adminActions;
+        if (adminActions != null && adminActions.respawnBroadcastMessage != null && !adminActions.respawnBroadcastMessage.isEmpty()) {
+            Bukkit.broadcast(MiniMessage.miniMessage().deserialize(adminActions.respawnBroadcastMessage));
         }
 
         return true;
