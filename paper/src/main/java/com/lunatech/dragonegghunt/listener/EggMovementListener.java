@@ -247,31 +247,7 @@ public class EggMovementListener implements Listener {
     }
 
     private void triggerPhoenixRespawn(String reasonKey) {
-        com.lunatech.dragonegghunt.config.PluginConfig.AltarLocation altar = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
-        org.bukkit.World world = Bukkit.getWorld(altar.world);
-        org.bukkit.Location loc;
-
-        if (world != null) {
-            loc = new org.bukkit.Location(world, altar.x, altar.y, altar.z);
-        } else {
-            org.bukkit.World primaryWorld = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
-            if (primaryWorld != null) {
-                loc = primaryWorld.getSpawnLocation();
-            } else {
-                return;
-            }
-        }
-
-        Block block = loc.getBlock();
-        block.setType(Material.DRAGON_EGG);
-        eggTrackerService.updateState(new EggState.Placed(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ()));
-        
-        String reason = Translation.of("egghunt.reasons." + reasonKey);
-        Bukkit.broadcast(
-            ColorParser.of(Translation.of("egghunt.phoenix-respawn"))
-                .with("reason", reason != null ? reason : reasonKey)
-                .build()
-        );
+        plugin.getAltarService().respawnEggAtAltar(reasonKey);
     }
 
     private void validateAndCleanEggs() {
@@ -398,6 +374,14 @@ public class EggMovementListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         Block block = event.getBlockPlaced();
         if (block.getType() == Material.DRAGON_EGG && isAlphaEgg(event.getItemInHand())) {
+            if (plugin.getAltarService().isAtAltar(block)) {
+                var placeEvent = new com.lunatech.dragonegghunt.event.EggAltarPlaceEvent(block.getLocation(), event.getPlayer(), false);
+                Bukkit.getPluginManager().callEvent(placeEvent);
+                if (placeEvent.isCancelled()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
             eggTrackerService.updateState(new EggState.Placed(
                 block.getWorld().getName(),
                 block.getX(),
@@ -454,6 +438,14 @@ public class EggMovementListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
         if (block.getType() == Material.DRAGON_EGG && isTrackedAlphaEggBlock(block)) {
+            if (plugin.getAltarService().isAtAltar(block)) {
+                var removeEvent = new com.lunatech.dragonegghunt.event.EggAltarRemoveEvent(block.getLocation(), event.getPlayer());
+                Bukkit.getPluginManager().callEvent(removeEvent);
+                if (removeEvent.isCancelled()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
             event.setDropItems(false);
             
             ItemStack alphaEgg = com.lunatech.dragonegghunt.utility.EggItemFactory.createAlphaEgg(plugin);
@@ -938,6 +930,38 @@ public class EggMovementListener implements Listener {
             if (validationTask != null) {
                 validationTask.cancel();
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onAltarBlockBreak(BlockBreakEvent event) {
+        if (plugin.getAltarService().isAltarProtectedBlock(event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onAltarBlockPlace(BlockPlaceEvent event) {
+        if (plugin.getAltarService().isAltarProtectedBlock(event.getBlockPlaced())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onAltarExplode(EntityExplodeEvent event) {
+        event.blockList().removeIf(block -> plugin.getAltarService().isAltarProtectedBlock(block));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onAltarBlockExplode(BlockExplodeEvent event) {
+        event.blockList().removeIf(block -> plugin.getAltarService().isAltarProtectedBlock(block));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWorldLoad(org.bukkit.event.world.WorldLoadEvent event) {
+        final var altarDesc = plugin.getAltarService().getAltarLocationDescriptor();
+        if (event.getWorld().getName().equals(altarDesc.worldName())) {
+            plugin.getAltarService().generateAltarPedestal();
         }
     }
 }

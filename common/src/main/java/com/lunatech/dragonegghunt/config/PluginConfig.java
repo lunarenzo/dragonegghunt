@@ -148,6 +148,15 @@ public class PluginConfig implements VersionedConfig {
 
         @Comment("The Z coordinate")
         public double z = 0.5;
+
+        @Comment("Should the plugin automatically generate a physical bedrock/obsidian pedestal at the altar location?")
+        public boolean generatePedestal = true;
+
+        @Comment("The block material used for the center of the pedestal directly under the egg (e.g. BEDROCK)")
+        public String centerBlock = "BEDROCK";
+
+        @Comment("The block material used for the 8 surrounding platform blocks (e.g. OBSIDIAN)")
+        public String outerBlock = "OBSIDIAN";
     }
 }
 

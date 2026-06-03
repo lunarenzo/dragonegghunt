@@ -30,6 +30,9 @@
         "config-success": "<green>Successfully reloaded configuration file!",
         "lang-success": "<green>Successfully reloaded translation files!",
         "database-success": "<green>Successfully reloaded database connections and messaging!"
+      },
+      "setaltar": {
+        "success": "<green>Successfully set the Altar location to <yellow><x>, <y>, <z> <green>in world <yellow><world><green>."
       }
     }
   },

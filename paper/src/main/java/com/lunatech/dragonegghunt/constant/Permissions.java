@@ -43,6 +43,11 @@ public final class Permissions {
     public static final String COMMAND_DASHBOARD = "dragonegghunt.command.admin";
 
     /**
+     * Permission required to set the altar location dynamically.
+     */
+    public static final String COMMAND_SETALTAR = "dragonegghunt.command.setaltar";
+
+    /**
      * Permission required to receive update notifications on join.
      */
     public static final String UPDATE_NOTIFY = "dragonegghunt.update.notify";

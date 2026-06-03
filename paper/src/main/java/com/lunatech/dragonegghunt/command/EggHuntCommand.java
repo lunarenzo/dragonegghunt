@@ -81,7 +81,12 @@ public class EggHuntCommand extends Command {
                 new CommandAPICommand("dashboard")
                     .withHelp("Open the administrative dashboard GUI", "Open the administrative dashboard GUI")
                     .withPermission(Permissions.COMMAND_DASHBOARD)
-                    .executesPlayer(this::executorDashboard)
+                    .executesPlayer(this::executorDashboard),
+                new CommandAPICommand("setaltar")
+                    .withHelp("Set the current location as the new Altar", "Set the current location as the new Altar")
+                    .withOptionalArguments(new BooleanArgument("generatePedestal"))
+                    .withPermission(Permissions.COMMAND_SETALTAR)
+                    .executesPlayer(this::executorSetAltar)
             )
             .executes(this::executorInfo);
     }
@@ -253,5 +258,28 @@ public class EggHuntCommand extends Command {
 
     private void executorDashboard(Player player, CommandArguments args) {
         new com.lunatech.dragonegghunt.gui.AdminDashboard(plugin).open(player);
+    }
+
+    private void executorSetAltar(Player player, CommandArguments args) {
+        if (!player.hasPermission(Permissions.COMMAND_SETALTAR)) {
+            player.sendMessage(Translation.as("commands.egghunt.no-permission"));
+            return;
+        }
+
+        final java.util.Optional<Object> optionalGen = args.getOptional("generatePedestal");
+        final boolean generatePedestal = optionalGen.isPresent() 
+            ? (Boolean) optionalGen.get() 
+            : plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation.generatePedestal;
+
+        plugin.getAltarService().updateAltarLocation(player.getLocation(), generatePedestal);
+
+        player.sendMessage(
+            ColorParser.of(Translation.of("commands.egghunt.setaltar.success"))
+                .with("x", String.format("%.1f", player.getLocation().getX()))
+                .with("y", String.format("%.1f", player.getLocation().getY()))
+                .with("z", String.format("%.1f", player.getLocation().getZ()))
+                .with("world", player.getWorld().getName())
+                .build()
+        );
     }
 }

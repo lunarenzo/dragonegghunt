@@ -199,23 +199,7 @@ public final class AdminDashboard {
             .lore(lore)
             .asGuiItem(event -> {
                 if (event.isLeftClick()) {
-                    final var altarConfig = plugin.getConfigHandler().getConfig().dragonEggTracker.altarLocation;
-                    if (altarConfig != null) {
-                        final org.bukkit.World world = Bukkit.getWorld(altarConfig.world);
-                        if (world != null) {
-                            final org.bukkit.Location altar = new org.bukkit.Location(world, altarConfig.x, altarConfig.y, altarConfig.z);
-                            altar.getBlock().setType(Material.DRAGON_EGG);
-                            plugin.getEggTrackerService().updateState(new EggState.Placed(altarConfig.world, altarConfig.x, altarConfig.y, altarConfig.z));
-
-                            if (!cfg.respawnBroadcastMessage.isEmpty()) {
-                                Bukkit.broadcast(MM.deserialize(cfg.respawnBroadcastMessage));
-                            }
-                        } else {
-                            if (!cfg.altarWorldNotLoadedMessage.isEmpty()) {
-                                player.sendMessage(MM.deserialize(cfg.altarWorldNotLoadedMessage.replace("{world}", altarConfig.world)));
-                            }
-                        }
-                    }
+                    plugin.getAltarService().forceRespawnEggAtAltar(player);
                     gui.close(player);
                 } else if (event.isRightClick()) {
                     final EggState state = plugin.getEggTrackerService().getState();

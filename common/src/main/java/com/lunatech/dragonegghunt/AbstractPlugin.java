@@ -35,4 +35,6 @@ public abstract class AbstractPlugin extends JavaPlugin {
     public abstract @NotNull com.lunatech.dragonegghunt.service.EggTrackerService getEggTrackerService();
 
     public abstract @NotNull com.lunatech.dragonegghunt.service.EggAuditService getEggAuditService();
+
+    public abstract @NotNull com.lunatech.dragonegghunt.service.AltarService getAltarService();
 }

@@ -46,6 +46,7 @@ public class DragonEggHunt extends AbstractPlugin {
     private com.lunatech.dragonegghunt.service.EggTrackerService eggTrackerService;
     private com.lunatech.dragonegghunt.service.EggAuditService eggAuditService;
     private com.lunatech.dragonegghunt.service.TrackerRecipeService trackerRecipeService;
+    private com.lunatech.dragonegghunt.service.AltarService altarService;
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
     private space.arim.morepaperlib.scheduling.ScheduledTask potionBuffTask;
     private com.lunatech.dragonegghunt.task.PotionBuffTask potionBuffTaskRunner;
@@ -103,6 +104,7 @@ public class DragonEggHunt extends AbstractPlugin {
         // Initialize Egg audit logs state & repository
         com.lunatech.dragonegghunt.persistence.AuditLogRepository auditRepository = new com.lunatech.dragonegghunt.persistence.impl.SqlAuditLogRepository();
         this.eggAuditService = new com.lunatech.dragonegghunt.service.impl.DefaultEggAuditService(auditRepository);
+        this.altarService = new com.lunatech.dragonegghunt.service.impl.DefaultAltarService(this);
 
 
         for (Reloadable handler : handlers)
@@ -134,6 +136,11 @@ public class DragonEggHunt extends AbstractPlugin {
         // Load egg tracker state
         eggTrackerService.loadState();
         eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
+
+        // Generate the altar pedestal at startup if configured and world is loaded
+        if (altarService != null) {
+            altarService.generateAltarPedestal();
+        }
 
         // Register state listener for audit logs
         eggTrackerService.setStateListener(new com.lunatech.dragonegghunt.listener.AuditEventDispatcher(this));
@@ -350,5 +357,10 @@ public class DragonEggHunt extends AbstractPlugin {
 
     public @NotNull com.lunatech.dragonegghunt.service.TrackerRecipeService getTrackerRecipeService() {
         return trackerRecipeService;
+    }
+
+    @Override
+    public @NotNull com.lunatech.dragonegghunt.service.AltarService getAltarService() {
+        return altarService;
     }
 }

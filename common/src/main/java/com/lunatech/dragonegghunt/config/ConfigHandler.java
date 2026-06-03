@@ -123,4 +123,30 @@ public class ConfigHandler implements Reloadable {
     public DashboardConfig getDashboardConfig() {
         return dashboardCfg;
     }
+
+    /**
+     * Saves the current PluginConfig to disk.
+     */
+    public void saveConfig() {
+        try {
+            final Path path = configDir.resolve("config.yml");
+            final org.spongepowered.configurate.yaml.YamlConfigurationLoader loader = 
+                org.spongepowered.configurate.yaml.YamlConfigurationLoader.builder()
+                    .path(path)
+                    .indent(2)
+                    .nodeStyle(org.spongepowered.configurate.yaml.NodeStyle.BLOCK)
+                    .defaultOptions(options -> options
+                        .serializers(builder -> builder.registerAll(
+                            org.spongepowered.configurate.serialize.TypeSerializerCollection.defaults()
+                        ))
+                    )
+                    .build();
+            final org.spongepowered.configurate.CommentedConfigurationNode node = 
+                org.spongepowered.configurate.CommentedConfigurationNode.root(loader.defaultOptions());
+            node.set(PluginConfig.class, cfg);
+            loader.save(node);
+        } catch (org.spongepowered.configurate.ConfigurateException e) {
+            logger.error("Failed to save config.yml to disk!", e);
+        }
+    }
 }
