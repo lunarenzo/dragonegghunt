@@ -103,6 +103,9 @@ public final class DefaultAltarService implements AltarService {
             return false;
         }
 
+        // Clear the old egg block / entity / item to prevent duplicates
+        clearOldEggState();
+
         final Location finalLoc = respawnEvent.getLocation();
         
         // Load the chunk if it isn't loaded to prevent glitching/errors
@@ -161,6 +164,9 @@ public final class DefaultAltarService implements AltarService {
         if (respawnEvent.isCancelled()) {
             return false;
         }
+
+        // Clear the old egg block / entity / item to prevent duplicates
+        clearOldEggState();
 
         final Location finalLoc = respawnEvent.getLocation();
         finalLoc.getChunk().load();
@@ -298,5 +304,59 @@ public final class DefaultAltarService implements AltarService {
             + location.getWorld().getName() + " at " 
             + (location.getBlockX() + 0.5) + ", " + location.getBlockY() + ", " + (location.getBlockZ() + 0.5)
             + " (generatePedestal: " + generatePedestal + ")");
+    }
+
+    private void clearOldEggState() {
+        final EggState oldState = plugin.getEggTrackerService().getState();
+        if (oldState instanceof EggState.Placed placed) {
+            final World oldWorld = Bukkit.getWorld(placed.worldName());
+            if (oldWorld != null) {
+                final Location oldLoc = new Location(oldWorld, placed.x(), placed.y(), placed.z());
+                final Block oldBlock = oldLoc.getBlock();
+                if (oldBlock.getType() == Material.DRAGON_EGG) {
+                    oldBlock.setType(Material.AIR);
+                    plugin.getComponentLogger().info("Removed old placed Dragon Egg block at " + placed.worldName() + " (" + placed.x() + ", " + placed.y() + ", " + placed.z() + ") to prevent duplicates.");
+                }
+            }
+        } else if (oldState instanceof EggState.Dropped dropped) {
+            final org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
+            if (entity != null && entity.isValid()) {
+                entity.remove();
+                plugin.getComponentLogger().info("Removed old dropped Dragon Egg entity to prevent duplicates.");
+            }
+        } else if (oldState instanceof EggState.Held held) {
+            final Player player = Bukkit.getPlayer(held.holderUuid());
+            if (player != null && player.isOnline()) {
+                // Remove all Alpha Dragon Eggs from the player's inventory
+                for (int i = 0; i < player.getInventory().getSize(); i++) {
+                    final org.bukkit.inventory.ItemStack item = player.getInventory().getItem(i);
+                    if (isAlphaEgg(item)) {
+                        player.getInventory().setItem(i, null);
+                    }
+                }
+                // Check offhand
+                final org.bukkit.inventory.ItemStack offHand = player.getInventory().getItemInOffHand();
+                if (isAlphaEgg(offHand)) {
+                    player.getInventory().setItemInOffHand(null);
+                }
+                // Check cursor
+                final org.bukkit.inventory.ItemStack cursor = player.getItemOnCursor();
+                if (isAlphaEgg(cursor)) {
+                    player.setItemOnCursor(null);
+                }
+                plugin.getComponentLogger().info("Removed Alpha Dragon Egg item from player " + player.getName() + "'s inventory to prevent duplicates.");
+            }
+        }
+    }
+
+    private boolean isAlphaEgg(@Nullable org.bukkit.inventory.ItemStack item) {
+        if (item == null || item.getType() != Material.DRAGON_EGG) {
+            return false;
+        }
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return false;
+        }
+        return meta.getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER);
     }
 }
