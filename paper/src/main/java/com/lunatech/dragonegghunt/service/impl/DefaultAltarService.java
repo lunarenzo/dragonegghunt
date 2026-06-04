@@ -248,12 +248,18 @@ public final class DefaultAltarService implements AltarService {
         final int by = block.getY();
         final int bz = block.getZ();
 
-        // Check if block is in the Y-1 layer beneath the altar location
-        if (by == ay - 1) {
+        // Check if block is within the 3x3 footprint and Y-1 to Y+1 height range
+        if (by >= ay - 1 && by <= ay + 1) {
             final int dx = bx - ax;
             final int dz = bz - az;
-            // Matches 3x3 platform surrounding the block beneath the altar
-            return Math.abs(dx) <= 1 && Math.abs(dz) <= 1;
+            if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) {
+                // EXCLUDE the exact center block at the egg level (ax, ay, az) 
+                // so players can still click/break the egg to collect it.
+                if (bx == ax && by == ay && bz == az) {
+                    return false;
+                }
+                return true;
+            }
         }
         return false;
     }
