@@ -964,4 +964,18 @@ public class EggMovementListener implements Listener {
             plugin.getAltarService().generateAltarPedestal();
         }
     }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
+        final var altarDesc = plugin.getAltarService().getAltarLocationDescriptor();
+        if (event.getWorld().getName().equals(altarDesc.worldName())) {
+            final int cx = event.getChunk().getX();
+            final int cz = event.getChunk().getZ();
+            final int ax = ((int) altarDesc.x()) >> 4;
+            final int az = ((int) altarDesc.z()) >> 4;
+            if (cx == ax && cz == az) {
+                plugin.getAltarService().generateAltarPedestal();
+            }
+        }
+    }
 }

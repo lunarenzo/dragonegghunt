@@ -44,7 +44,30 @@ public final class DefaultAltarService implements AltarService {
         if (world == null) {
             return Optional.empty();
         }
-        return Optional.of(new Location(world, descriptor.x(), descriptor.y(), descriptor.z()));
+
+        double x = descriptor.x();
+        double y = descriptor.y();
+        double z = descriptor.z();
+
+        // Dynamically align Y-coordinate if it's the center of the End world exit portal (0, 0)
+        if (world.getEnvironment() == World.Environment.THE_END && Math.abs(x) < 1.0 && Math.abs(z) < 1.0) {
+            if (world.isChunkLoaded(0, 0) || Bukkit.isPrimaryThread()) {
+                if (!world.isChunkLoaded(0, 0)) {
+                    world.getChunkAt(0, 0); // Load chunk synchronously
+                }
+                int highestBedrockY = -1;
+                for (int scanY = 50; scanY < 90; scanY++) {
+                    if (world.getBlockAt(0, scanY, 0).getType() == Material.BEDROCK) {
+                        highestBedrockY = scanY;
+                    }
+                }
+                if (highestBedrockY != -1) {
+                    y = highestBedrockY + 1;
+                }
+            }
+        }
+
+        return Optional.of(new Location(world, x, y, z));
     }
 
     @Override
@@ -111,6 +134,9 @@ public final class DefaultAltarService implements AltarService {
         // Load the chunk if it isn't loaded to prevent glitching/errors
         finalLoc.getChunk().load();
 
+        // Generate the physical pedestal if configured
+        generateAltarPedestal();
+
         // Place the egg block
         final Block block = finalLoc.getBlock();
         block.setType(Material.DRAGON_EGG);
@@ -170,6 +196,9 @@ public final class DefaultAltarService implements AltarService {
 
         final Location finalLoc = respawnEvent.getLocation();
         finalLoc.getChunk().load();
+
+        // Generate the physical pedestal if configured
+        generateAltarPedestal();
 
         // Place block
         final Block block = finalLoc.getBlock();
@@ -244,11 +273,13 @@ public final class DefaultAltarService implements AltarService {
             return;
         }
 
-        Material centerMat = Material.matchMaterial(config.dragonEggTracker.altarLocation.centerBlock);
+        final String centerBlockName = config.dragonEggTracker.altarLocation.centerBlock;
+        Material centerMat = centerBlockName != null ? Material.matchMaterial(centerBlockName) : null;
         if (centerMat == null) {
             centerMat = Material.BEDROCK;
         }
-        Material outerMat = Material.matchMaterial(config.dragonEggTracker.altarLocation.outerBlock);
+        final String outerBlockName = config.dragonEggTracker.altarLocation.outerBlock;
+        Material outerMat = outerBlockName != null ? Material.matchMaterial(outerBlockName) : null;
         if (outerMat == null) {
             outerMat = Material.OBSIDIAN;
         }
