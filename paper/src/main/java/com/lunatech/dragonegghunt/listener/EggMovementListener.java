@@ -961,7 +961,9 @@ public class EggMovementListener implements Listener {
     public void onWorldLoad(org.bukkit.event.world.WorldLoadEvent event) {
         final var altarDesc = plugin.getAltarService().getAltarLocationDescriptor();
         if (event.getWorld().getName().equals(altarDesc.worldName())) {
-            plugin.getAltarService().generateAltarPedestal();
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                plugin.getAltarService().generateAltarPedestal();
+            }, 40L);
         }
     }
 
@@ -974,7 +976,9 @@ public class EggMovementListener implements Listener {
             final int ax = ((int) altarDesc.x()) >> 4;
             final int az = ((int) altarDesc.z()) >> 4;
             if (cx == ax && cz == az) {
-                plugin.getAltarService().generateAltarPedestal();
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    plugin.getAltarService().generateAltarPedestal();
+                }, 40L);
             }
         }
     }

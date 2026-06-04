@@ -264,6 +264,7 @@ public final class DefaultAltarService implements AltarService {
 
         final var config = plugin.getConfigHandler().getConfig();
         if (!config.dragonEggTracker.altarLocation.generatePedestal) {
+            plugin.getComponentLogger().info("Skipping altar pedestal generation: generatePedestal is disabled in configuration.");
             return;
         }
 
@@ -289,6 +290,8 @@ public final class DefaultAltarService implements AltarService {
         final int ax = altarLoc.getBlockX();
         final int ay = altarLoc.getBlockY();
         final int az = altarLoc.getBlockZ();
+
+        plugin.getComponentLogger().info("Generating altar pedestal at " + world.getName() + " (" + ax + ", " + (ay - 1) + ", " + az + ") with center block: " + centerMat + ", outer block: " + outerMat);
 
         // Preload target chunk
         altarLoc.getChunk().load();
