@@ -330,6 +330,9 @@ public final class DefaultAltarService implements AltarService {
             return;
         }
 
+        // Clear the old pedestal blocks before saving the new coordinates
+        clearOldAltarPedestal();
+
         final var config = plugin.getConfigHandler().getConfig();
         config.dragonEggTracker.altarLocation.world = location.getWorld().getName();
         config.dragonEggTracker.altarLocation.x = location.getBlockX() + 0.5;
@@ -401,5 +404,54 @@ public final class DefaultAltarService implements AltarService {
             return false;
         }
         return meta.getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER);
+    }
+
+    private void clearOldAltarPedestal() {
+        final var resolved = resolveAltarLocation();
+        if (resolved.isEmpty()) {
+            return;
+        }
+
+        final var config = plugin.getConfigHandler().getConfig();
+        if (!config.dragonEggTracker.altarLocation.generatePedestal) {
+            return;
+        }
+
+        final Location altarLoc = resolved.get();
+        final World world = altarLoc.getWorld();
+        final int ax = altarLoc.getBlockX();
+        final int ay = altarLoc.getBlockY();
+        final int az = altarLoc.getBlockZ();
+
+        final String centerBlockName = config.dragonEggTracker.altarLocation.centerBlock;
+        Material centerMat = centerBlockName != null ? Material.matchMaterial(centerBlockName) : null;
+        if (centerMat == null) centerMat = Material.BEDROCK;
+        
+        final String outerBlockName = config.dragonEggTracker.altarLocation.outerBlock;
+        Material outerMat = outerBlockName != null ? Material.matchMaterial(outerBlockName) : null;
+        if (outerMat == null) outerMat = Material.OBSIDIAN;
+
+        boolean isVanillaEndPortal = world.getEnvironment() == World.Environment.THE_END && Math.abs(ax) < 1.0 && Math.abs(az) < 1.0;
+
+        // Clear center block if it's not the vanilla End portal frame
+        final Block centerBlock = world.getBlockAt(ax, ay - 1, az);
+        if (!isVanillaEndPortal && centerBlock.getType() == centerMat) {
+            centerBlock.setType(Material.AIR);
+        }
+
+        // Clear surrounding blocks
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                final Block outerBlock = world.getBlockAt(ax + dx, ay - 1, az + dz);
+                if (outerBlock.getType() == outerMat) {
+                    if (isVanillaEndPortal && outerBlock.getType() == Material.BEDROCK) {
+                        continue;
+                    }
+                    outerBlock.setType(Material.AIR);
+                }
+            }
+        }
+        plugin.getComponentLogger().info("Cleared previous altar pedestal blocks at " + world.getName() + " (" + ax + ", " + (ay - 1) + ", " + az + ")");
     }
 }

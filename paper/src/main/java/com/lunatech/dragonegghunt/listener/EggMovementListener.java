@@ -423,6 +423,8 @@ public class EggMovementListener implements Listener {
                                         z
                                     ));
                                     plugin.getComponentLogger().info("Dragon Egg detected and tracked at exit portal area: " + x + ", " + y + ", " + z);
+                                    // Rebuild the pedestal surrounding the active exit portal
+                                    plugin.getAltarService().generateAltarPedestal();
                                     this.cancel();
                                     return;
                                 }
