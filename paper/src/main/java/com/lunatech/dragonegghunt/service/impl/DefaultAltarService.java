@@ -63,6 +63,10 @@ public final class DefaultAltarService implements AltarService {
                 }
                 if (highestBedrockY != -1) {
                     y = highestBedrockY + 1;
+                } else {
+                    // Bedrock portal does not exist yet (e.g. dragon is alive)
+                    // Return empty to disable altar behaviors until the portal is generated
+                    return Optional.empty();
                 }
             }
         }
@@ -270,7 +274,12 @@ public final class DefaultAltarService implements AltarService {
 
         final var resolved = resolveAltarLocation();
         if (resolved.isEmpty()) {
-            plugin.getComponentLogger().warn("Cannot generate altar pedestal: Altar world is not loaded.");
+            final var descriptor = getAltarLocationDescriptor();
+            if (Bukkit.getWorld(descriptor.worldName()) == null) {
+                plugin.getComponentLogger().warn("Cannot generate altar pedestal: Altar world is not loaded.");
+            } else {
+                plugin.getComponentLogger().info("Skipping altar pedestal generation: Vanilla End portal bedrock pillar not found yet (dragon may be alive).");
+            }
             return;
         }
 
