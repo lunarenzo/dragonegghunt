@@ -306,10 +306,33 @@ public final class DefaultAltarService implements AltarService {
         final int ay = altarLoc.getBlockY();
         final int az = altarLoc.getBlockZ();
 
-        plugin.getComponentLogger().info("Generating altar pedestal at " + world.getName() + " (" + ax + ", " + (ay - 1) + ", " + az + ") with center block: " + centerMat + ", outer block: " + outerMat);
-
         // Preload target chunk
         altarLoc.getChunk().load();
+
+        // Check if the pedestal blocks are already set to the desired materials
+        boolean needsGeneration = false;
+        if (world.getBlockAt(ax, ay - 1, az).getType() != centerMat) {
+            needsGeneration = true;
+        } else {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dz == 0) continue; // Skip center block
+                    if (world.getBlockAt(ax + dx, ay - 1, az + dz).getType() != outerMat) {
+                        needsGeneration = true;
+                        break;
+                    }
+                }
+                if (needsGeneration) {
+                    break;
+                }
+            }
+        }
+
+        if (!needsGeneration) {
+            return;
+        }
+
+        plugin.getComponentLogger().info("Generating altar pedestal at " + world.getName() + " (" + ax + ", " + (ay - 1) + ", " + az + ") with center block: " + centerMat + ", outer block: " + outerMat);
 
         // Set Y-1 block underneath center
         world.getBlockAt(ax, ay - 1, az).setType(centerMat);
