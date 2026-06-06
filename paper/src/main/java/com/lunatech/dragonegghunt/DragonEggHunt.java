@@ -50,6 +50,7 @@ public class DragonEggHunt extends AbstractPlugin {
     private com.lunatech.dragonegghunt.service.EggAuditService eggAuditService;
     private com.lunatech.dragonegghunt.service.TrackerRecipeService trackerRecipeService;
     private com.lunatech.dragonegghunt.service.AltarService altarService;
+    private com.lunatech.dragonegghunt.service.ClaimValidationService claimValidationService;
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
     private space.arim.morepaperlib.scheduling.ScheduledTask potionBuffTask;
     private com.lunatech.dragonegghunt.task.PotionBuffTask potionBuffTaskRunner;
@@ -108,6 +109,7 @@ public class DragonEggHunt extends AbstractPlugin {
         com.lunatech.dragonegghunt.persistence.AuditLogRepository auditRepository = new com.lunatech.dragonegghunt.persistence.impl.SqlAuditLogRepository();
         this.eggAuditService = new com.lunatech.dragonegghunt.service.impl.DefaultEggAuditService(auditRepository);
         this.altarService = new com.lunatech.dragonegghunt.service.impl.DefaultAltarService(this);
+        this.claimValidationService = new com.lunatech.dragonegghunt.service.impl.ClaimValidationServiceImpl(this);
 
 
         for (Reloadable handler : handlers)
@@ -139,6 +141,11 @@ public class DragonEggHunt extends AbstractPlugin {
         // Load egg tracker state
         eggTrackerService.loadState();
         eggTrackerService.setOverrideRegionProtection(configHandler.getConfig().dragonEggTracker.overrideRegionProtection);
+
+        // Perform initial claim validation sweep on startup
+        if (claimValidationService != null) {
+            claimValidationService.validateEggLocation();
+        }
 
         // Generate the altar pedestal at startup if configured and world is loaded
         if (altarService != null) {
@@ -377,5 +384,9 @@ public class DragonEggHunt extends AbstractPlugin {
             return (ClaimProvider) Hook.GriefPrevention.get();
         }
         return NoOpClaimProvider.INSTANCE;
+    }
+
+    public @NotNull com.lunatech.dragonegghunt.service.ClaimValidationService getClaimValidationService() {
+        return claimValidationService;
     }
 }

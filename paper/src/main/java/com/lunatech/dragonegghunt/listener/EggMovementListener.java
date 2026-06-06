@@ -264,6 +264,10 @@ public class EggMovementListener implements Listener {
         boolean isPlaced = currentState instanceof EggState.Placed;
         boolean isDropped = currentState instanceof EggState.Dropped;
 
+        if (isPlaced) {
+            plugin.getClaimValidationService().validateEggLocation();
+        }
+
         if (currentState instanceof EggState.Dropped dropped) {
             org.bukkit.entity.Entity entity = Bukkit.getEntity(dropped.entityUuid());
             boolean isLost = false;
