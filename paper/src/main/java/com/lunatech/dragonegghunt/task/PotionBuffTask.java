@@ -13,6 +13,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 /**
  * Task to periodically apply configured potion buffs to the player currently holding the Alpha Dragon Egg.
@@ -136,6 +137,18 @@ public final class PotionBuffTask implements Runnable {
      * Cleans up effects immediately (useful for shutdown/reloads).
      */
     public void cleanup() {
-        clearLastHolderEffects();
+        if (Bukkit.isPrimaryThread()) {
+            clearLastHolderEffects();
+        } else {
+            try {
+                Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                    clearLastHolderEffects();
+                    return null;
+                }).get();
+            } catch (Exception e) {
+                plugin.getSLF4JLogger().warn("Failed to clean up potion effects synchronously, attempting direct removal", e);
+                clearLastHolderEffects();
+            }
+        }
     }
 }
