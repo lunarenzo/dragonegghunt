@@ -45,6 +45,7 @@
     },
     "picked-up": "<green>You picked up the Dragon Egg!",
     "placed": "<yellow>You placed the Dragon Egg!",
+    "place-blocked-claim": "<red>The Alpha Dragon Egg cannot be placed inside claimed territory!",
     "holder-quit-broadcast": "<red>The holder has logged out. The Dragon Egg was dropped at their location!",
     "duplicate-detected": "<red>Duplicate Dragon Egg detected! Converted to a normal decorative egg.",
     "phoenix-respawn": "<red>The Alpha Egg was consumed by <reason> and has returned to the Altar!",

@@ -38,6 +38,9 @@ dependencies {
     compileOnly(libs.placeholderapi) {
         exclude("me.clip.placeholderapi.libs", "kyori")
     }
+    compileOnly(libs.griefprevention) {
+        exclude(group = "*")
+    }
 
     // Database dependencies - Core
     library(libs.bundles.flyway)

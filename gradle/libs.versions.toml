@@ -35,6 +35,7 @@ triumph-gui = "dev.triumphteam:triumph-gui-paper:3.1.13"
 # Plugin dependencies
 bstats = "org.bstats:bstats-bukkit:3.2.1"
 placeholderapi = "me.clip:placeholderapi:2.12.2"
+griefprevention = "com.github.TechFortress:GriefPrevention:16.18.2"
 
 # Database dependencies
 hikaricp = "com.zaxxer:HikariCP:7.0.2"

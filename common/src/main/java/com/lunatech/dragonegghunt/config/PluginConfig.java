@@ -63,6 +63,9 @@ public class PluginConfig implements VersionedConfig {
         @Comment("Should the Alpha Dragon Egg be allowed to be stored inside containers (chests, hoppers, dispensers, etc.)?")
         public boolean allowContainerStorage = false;
 
+        @Comment("Should the Alpha Dragon Egg be prevented from being placed inside claimed territory (e.g. GriefPrevention)?")
+        public boolean preventClaimPlacement = true;
+
         @Comment("The altar location where the Alpha Egg will respawn if destroyed or despawned")
         public AltarLocation altarLocation = new AltarLocation();
 

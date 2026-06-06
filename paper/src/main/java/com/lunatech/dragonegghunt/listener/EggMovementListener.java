@@ -374,6 +374,15 @@ public class EggMovementListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         Block block = event.getBlockPlaced();
         if (block.getType() == Material.DRAGON_EGG && isAlphaEgg(event.getItemInHand())) {
+            // Check if claim placement prevention is enabled and the location is claimed
+            if (plugin.getConfigHandler().getConfig().dragonEggTracker.preventClaimPlacement
+                    && !plugin.getAltarService().isAtAltar(block)
+                    && plugin.getClaimProvider().isInClaim(block.getLocation())) {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage(Translation.as("egghunt.place-blocked-claim"));
+                return;
+            }
+
             if (plugin.getAltarService().isAtAltar(block)) {
                 var placeEvent = new com.lunatech.dragonegghunt.event.EggAltarPlaceEvent(block.getLocation(), event.getPlayer(), false);
                 Bukkit.getPluginManager().callEvent(placeEvent);

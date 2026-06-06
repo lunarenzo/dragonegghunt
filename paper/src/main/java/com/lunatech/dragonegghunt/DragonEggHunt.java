@@ -5,7 +5,10 @@ import com.lunatech.dragonegghunt.command.CommandHandler;
 import com.lunatech.dragonegghunt.config.ConfigHandler;
 import com.lunatech.dragonegghunt.cooldown.CooldownHandler;
 import com.lunatech.dragonegghunt.database.handler.DatabaseHandler;
+import com.lunatech.dragonegghunt.hook.ClaimProvider;
+import com.lunatech.dragonegghunt.hook.Hook;
 import com.lunatech.dragonegghunt.hook.HookManager;
+import com.lunatech.dragonegghunt.hook.impl.NoOpClaimProvider;
 import com.lunatech.dragonegghunt.listener.ListenerHandler;
 import com.lunatech.dragonegghunt.messaging.MessagingHandler;
 import com.lunatech.dragonegghunt.threadutil.SchedulerHandler;
@@ -362,5 +365,17 @@ public class DragonEggHunt extends AbstractPlugin {
     @Override
     public @NotNull com.lunatech.dragonegghunt.service.AltarService getAltarService() {
         return altarService;
+    }
+
+    /**
+     * Gets the active claim provider.
+     *
+     * @return the claim provider
+     */
+    public @NotNull ClaimProvider getClaimProvider() {
+        if (Hook.GriefPrevention.isLoaded()) {
+            return (ClaimProvider) Hook.GriefPrevention.get();
+        }
+        return NoOpClaimProvider.INSTANCE;
     }
 }
