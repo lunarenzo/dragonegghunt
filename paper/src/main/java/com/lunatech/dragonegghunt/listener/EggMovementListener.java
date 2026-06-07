@@ -60,14 +60,7 @@ public class EggMovementListener implements Listener {
     private final java.util.Set<UUID> playersWithEggOnCursor = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private boolean isAlphaEgg(ItemStack item) {
-        if (item == null || item.getType() != Material.DRAGON_EGG) {
-            return false;
-        }
-        if (!item.hasItemMeta()) {
-            return false;
-        }
-        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
-        return meta != null && meta.getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, org.bukkit.persistence.PersistentDataType.INTEGER);
+        return com.lunatech.dragonegghunt.utility.EggItemFactory.isAlphaEgg(item);
     }
 
     private boolean hasAlphaEgg(Player player) {
@@ -578,14 +571,10 @@ public class EggMovementListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
-        playersWithEggOnCursor.remove(player.getUniqueId());
-        UUID currentHolder = getHolderUuid();
-        if (player.getUniqueId().equals(currentHolder)) {
-            eggTrackerService.updateState(new EggState.Unheld());
-        }
+        playersWithEggOnCursor.remove(event.getEntity().getUniqueId());
+        plugin.getDeathHandlingService().handleHolderDeath(event);
     }
 
     /**

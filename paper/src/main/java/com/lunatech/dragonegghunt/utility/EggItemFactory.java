@@ -47,4 +47,21 @@ public final class EggItemFactory {
         }
         return egg;
     }
+
+    /**
+     * Checks if the given ItemStack is the Alpha Dragon Egg.
+     *
+     * @param item the item stack to check
+     * @return true if the item is the Alpha Dragon Egg, false otherwise
+     */
+    public static boolean isAlphaEgg(ItemStack item) {
+        if (item == null || item.getType() != Material.DRAGON_EGG) {
+            return false;
+        }
+        if (!item.hasItemMeta()) {
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer().has(DragonEggHunt.ALPHA_EGG_KEY, PersistentDataType.INTEGER);
+    }
 }

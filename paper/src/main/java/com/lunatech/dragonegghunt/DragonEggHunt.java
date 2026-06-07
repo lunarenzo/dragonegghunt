@@ -51,6 +51,7 @@ public class DragonEggHunt extends AbstractPlugin {
     private com.lunatech.dragonegghunt.service.TrackerRecipeService trackerRecipeService;
     private com.lunatech.dragonegghunt.service.AltarService altarService;
     private com.lunatech.dragonegghunt.service.ClaimValidationService claimValidationService;
+    private com.lunatech.dragonegghunt.service.DeathHandlingService deathHandlingService;
     private space.arim.morepaperlib.scheduling.ScheduledTask broadcastTask;
     private space.arim.morepaperlib.scheduling.ScheduledTask potionBuffTask;
     private com.lunatech.dragonegghunt.task.PotionBuffTask potionBuffTaskRunner;
@@ -110,6 +111,7 @@ public class DragonEggHunt extends AbstractPlugin {
         this.eggAuditService = new com.lunatech.dragonegghunt.service.impl.DefaultEggAuditService(auditRepository);
         this.altarService = new com.lunatech.dragonegghunt.service.impl.DefaultAltarService(this);
         this.claimValidationService = new com.lunatech.dragonegghunt.service.impl.ClaimValidationServiceImpl(this);
+        this.deathHandlingService = new com.lunatech.dragonegghunt.service.impl.DeathHandlingServiceImpl(this);
 
 
         for (Reloadable handler : handlers)
@@ -388,5 +390,9 @@ public class DragonEggHunt extends AbstractPlugin {
 
     public @NotNull com.lunatech.dragonegghunt.service.ClaimValidationService getClaimValidationService() {
         return claimValidationService;
+    }
+
+    public @NotNull com.lunatech.dragonegghunt.service.DeathHandlingService getDeathHandlingService() {
+        return deathHandlingService;
     }
 }
