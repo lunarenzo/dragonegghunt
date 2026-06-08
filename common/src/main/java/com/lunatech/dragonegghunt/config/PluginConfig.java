@@ -60,6 +60,9 @@ public class PluginConfig implements VersionedConfig {
         @Comment("Should PvP bypass WorldGuard and other regional protections?")
         public boolean overrideRegionProtection = false;
 
+        @Comment("The duration in seconds that a combat session lasts between a hunter and the holder")
+        public int combatSessionDuration = 15;
+
         @Comment("Should the Alpha Dragon Egg be allowed to be stored inside containers (chests, hoppers, dispensers, etc.)?")
         public boolean allowContainerStorage = false;
 

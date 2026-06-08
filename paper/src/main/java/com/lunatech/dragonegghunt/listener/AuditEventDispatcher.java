@@ -32,6 +32,13 @@ public final class AuditEventDispatcher implements EggStateListener {
     }
 
     private void handleTransition(EggState oldState, EggState newState) {
+        // Clear active combat sessions if the holder changes or the egg is no longer held
+        if (!(newState instanceof EggState.Held newHeld) 
+                || !(oldState instanceof EggState.Held oldHeld) 
+                || !newHeld.holderUuid().equals(oldHeld.holderUuid())) {
+            plugin.getCombatSessionService().clearSessions();
+        }
+
         if (newState instanceof EggState.Held held) {
             Player player = Bukkit.getPlayer(held.holderUuid());
             if (player != null && player.isOnline()) {
