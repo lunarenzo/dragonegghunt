@@ -41,6 +41,9 @@ dependencies {
     compileOnly(libs.griefprevention) {
         exclude(group = "*")
     }
+    compileOnly(libs.togglepvp) {
+        exclude(group = "*")
+    }
 
     // Database dependencies - Core
     library(libs.bundles.flyway)
