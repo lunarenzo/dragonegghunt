@@ -3,6 +3,7 @@ package com.lunatech.dragonegghunt.listener;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -21,7 +22,18 @@ public class PvPProtectionListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player victim) || !(event.getDamager() instanceof Player damager)) {
+        if (!(event.getEntity() instanceof Player victim)) {
+            return;
+        }
+
+        Player damager = null;
+        if (event.getDamager() instanceof Player player) {
+            damager = player;
+        } else if (event.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter) {
+            damager = shooter;
+        }
+
+        if (damager == null) {
             return;
         }
 
