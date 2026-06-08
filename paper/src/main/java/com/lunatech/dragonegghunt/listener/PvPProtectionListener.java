@@ -73,11 +73,15 @@ public class PvPProtectionListener implements Listener {
                 }
             } else {
                 // Holder is attacking a peaceful player who hasn't hit them.
-                // Keep the event cancelled (respecting GriefPrevention / togglepvp) and notify the holder
-                event.setCancelled(true);
-                damager.sendMessage(ColorParser.of(Translation.of("egghunt.pvp-blocked-peaceful"))
-                    .with("player", victim.getName())
-                    .build());
+                // Keep the event cancelled (respecting GriefPrevention / togglepvp) and notify the holder if not already cancelled.
+                if (!event.isCancelled()) {
+                    event.setCancelled(true);
+                    damager.sendMessage(ColorParser.of(Translation.of("egghunt.pvp-blocked-peaceful"))
+                        .with("player", victim.getName())
+                        .build());
+                } else {
+                    event.setCancelled(true);
+                }
             }
         }
     }
