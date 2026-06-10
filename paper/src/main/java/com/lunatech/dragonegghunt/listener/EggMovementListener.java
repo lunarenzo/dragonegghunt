@@ -571,7 +571,7 @@ public class EggMovementListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onDeath(PlayerDeathEvent event) {
         playersWithEggOnCursor.remove(event.getEntity().getUniqueId());
         plugin.getDeathHandlingService().handleHolderDeath(event);
