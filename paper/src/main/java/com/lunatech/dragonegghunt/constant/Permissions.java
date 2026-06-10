@@ -48,6 +48,11 @@ public final class Permissions {
     public static final String COMMAND_SETALTAR = "dragonegghunt.command.setaltar";
 
     /**
+     * Permission required to purge illegal decorative dragon eggs.
+     */
+    public static final String COMMAND_PURGE = "dragonegghunt.command.purge";
+
+    /**
      * Permission required to receive update notifications on join.
      */
     public static final String UPDATE_NOTIFY = "dragonegghunt.update.notify";
