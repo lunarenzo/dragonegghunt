@@ -4,6 +4,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Service responsible for scanning and scrubbing illegal (decorative/duplicate) dragon eggs
@@ -54,9 +55,9 @@ public interface EggCleanerService {
     boolean cleanPlacedBlock(@NotNull org.bukkit.block.Block block);
 
     /**
-     * Executes an active purge sweep across all online players and loaded chunks on the main thread.
+     * Executes an active purge sweep across all online players and loaded chunks.
      *
-     * @return a CleanupReport containing detailed metrics about the sweep
+     * @return a CompletableFuture containing the CleanupReport with detailed metrics about the sweep
      */
-    @NotNull CleanupReport runActivePurge();
+    @NotNull CompletableFuture<CleanupReport> runActivePurge();
 }

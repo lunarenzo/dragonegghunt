@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Implementation of EggCleanerService.
@@ -157,14 +158,25 @@ public final class EggCleanerServiceImpl implements EggCleanerService {
         return false;
     }
 
+    private record ChunkTask(
+        ChunkSnapshot snapshot,
+        int minSection,
+        int maxSection
+    ) {}
+
+    private record IllegalBlockLocation(
+        String worldName,
+        int x,
+        int y,
+        int z
+    ) {}
+
     @Override
-    public @NotNull CleanupReport runActivePurge() {
+    public @NotNull CompletableFuture<CleanupReport> runActivePurge() {
         long startTime = System.currentTimeMillis();
         int onlinePlayersScanned = 0;
-        int loadedChunksScanned = 0;
         int eggsRemovedFromInventories = 0;
         int eggsRemovedFromEnderChests = 0;
-        int blocksRemovedFromWorlds = 0;
 
         // 1. Scan online players
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -183,10 +195,8 @@ public final class EggCleanerServiceImpl implements EggCleanerService {
             }
         }
 
-        // 2. Scan loaded chunks for illegal placed blocks
-        List<Block> blocksToClear = new ArrayList<>();
-        EggState state = plugin.getEggTrackerService().getState();
-        
+        // 2. Scan loaded chunks for illegal placed blocks (capture snapshots synchronously)
+        List<ChunkTask> chunkTasks = new ArrayList<>();
         for (World world : Bukkit.getWorlds()) {
             int minHeight = world.getMinHeight();
             int maxHeight = world.getMaxHeight();
@@ -194,12 +204,32 @@ public final class EggCleanerServiceImpl implements EggCleanerService {
             int maxSection = (maxHeight - 1) >> 4;
             
             for (Chunk chunk : world.getLoadedChunks()) {
-                loadedChunksScanned++;
-                
-                // Get chunk snapshot to read block types extremely fast (avoiding Bukkit Block wrapper allocations)
                 ChunkSnapshot snapshot = chunk.getChunkSnapshot(false, false, false);
-                for (int sectionY = minSection; sectionY <= maxSection; sectionY++) {
-                    if (snapshot.isSectionEmpty(sectionY - minSection)) {
+                chunkTasks.add(new ChunkTask(snapshot, minSection, maxSection));
+            }
+        }
+
+        int loadedChunksScanned = chunkTasks.size();
+        EggState state = plugin.getEggTrackerService().getState();
+
+        final int finalOnlinePlayersScanned = onlinePlayersScanned;
+        final int finalEggsRemovedFromInventories = eggsRemovedFromInventories;
+        final int finalEggsRemovedFromEnderChests = eggsRemovedFromEnderChests;
+        final int finalLoadedChunksScanned = loadedChunksScanned;
+
+        // 3. Scan the snapshots asynchronously
+        CompletableFuture<List<IllegalBlockLocation>> asyncScanFuture = CompletableFuture.supplyAsync(() -> {
+            List<IllegalBlockLocation> locationsToClear = new ArrayList<>();
+            for (ChunkTask task : chunkTasks) {
+                ChunkSnapshot snapshot = task.snapshot();
+                int minSec = task.minSection();
+                int maxSec = task.maxSection();
+                String worldName = snapshot.getWorldName();
+                int chunkX = snapshot.getX();
+                int chunkZ = snapshot.getZ();
+
+                for (int sectionY = minSec; sectionY <= maxSec; sectionY++) {
+                    if (snapshot.isSectionEmpty(sectionY - minSec)) {
                         continue; // Skip empty sections
                     }
                     
@@ -212,14 +242,19 @@ public final class EggCleanerServiceImpl implements EggCleanerService {
                                     // Check if this matches the real placed egg location
                                     boolean isReal = false;
                                     if (state instanceof EggState.Placed placed) {
-                                        isReal = world.getName().equals(placed.worldName())
-                                            && (chunk.getX() * 16 + x) == (int) Math.floor(placed.x())
+                                        isReal = worldName.equals(placed.worldName())
+                                            && (chunkX * 16 + x) == (int) Math.floor(placed.x())
                                             && absoluteY == (int) Math.floor(placed.y())
-                                            && (chunk.getZ() * 16 + z) == (int) Math.floor(placed.z());
+                                            && (chunkZ * 16 + z) == (int) Math.floor(placed.z());
                                     }
                                     
                                     if (!isReal) {
-                                        blocksToClear.add(chunk.getBlock(x, absoluteY, z));
+                                        locationsToClear.add(new IllegalBlockLocation(
+                                            worldName,
+                                            chunkX * 16 + x,
+                                            absoluteY,
+                                            chunkZ * 16 + z
+                                        ));
                                     }
                                 }
                             }
@@ -227,22 +262,46 @@ public final class EggCleanerServiceImpl implements EggCleanerService {
                     }
                 }
             }
-        }
+            return locationsToClear;
+        });
 
-        // Set illegal block types to AIR on the main thread
-        for (Block block : blocksToClear) {
-            block.setType(Material.AIR);
-            blocksRemovedFromWorlds++;
-        }
+        // 4. Return to main thread to safely set blocks to AIR
+        CompletableFuture<CleanupReport> resultFuture = new CompletableFuture<>();
+        asyncScanFuture.thenAccept(locationsToClear -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                int blocksRemovedFromWorlds = 0;
+                for (IllegalBlockLocation loc : locationsToClear) {
+                    World world = Bukkit.getWorld(loc.worldName());
+                    if (world == null) {
+                        continue;
+                    }
+                    int chunkX = loc.x() >> 4;
+                    int chunkZ = loc.z() >> 4;
+                    if (!world.isChunkLoaded(chunkX, chunkZ)) {
+                        continue; // Avoid loading chunks asynchronously
+                    }
+                    Block block = world.getBlockAt(loc.x(), loc.y(), loc.z());
+                    if (block.getType() == Material.DRAGON_EGG) {
+                        block.setType(Material.AIR);
+                        blocksRemovedFromWorlds++;
+                    }
+                }
 
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        return new CleanupReport(
-            onlinePlayersScanned,
-            loadedChunksScanned,
-            eggsRemovedFromInventories,
-            eggsRemovedFromEnderChests,
-            blocksRemovedFromWorlds,
-            elapsedTime
-        );
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                resultFuture.complete(new CleanupReport(
+                    finalOnlinePlayersScanned,
+                    finalLoadedChunksScanned,
+                    finalEggsRemovedFromInventories,
+                    finalEggsRemovedFromEnderChests,
+                    blocksRemovedFromWorlds,
+                    elapsedTime
+                ));
+            });
+        }).exceptionally(ex -> {
+            resultFuture.completeExceptionally(ex);
+            return null;
+        });
+
+        return resultFuture;
     }
 }

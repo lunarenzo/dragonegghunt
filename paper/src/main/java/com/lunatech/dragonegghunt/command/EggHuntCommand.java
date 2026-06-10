@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import java.util.concurrent.CompletableFuture;
 
 import com.lunatech.dragonegghunt.constant.Permissions;
 
@@ -295,33 +296,33 @@ public class EggHuntCommand extends Command {
 
         sender.sendMessage(ColorParser.of("<yellow>Starting active purge of illegal dragon eggs...").build());
 
-        try {
-            com.lunatech.dragonegghunt.service.EggCleanerService.CleanupReport report = 
-                plugin.getEggCleanerService().runActivePurge();
-
-            sender.sendMessage(ColorParser.of("<green>Active purge completed successfully in <yellow><time>ms</yellow>.")
-                .with("time", String.valueOf(report.elapsedTimeMillis()))
-                .build());
-            sender.sendMessage(ColorParser.of("<gray>Metrics Summary:")
-                .build());
-            sender.sendMessage(ColorParser.of("<gray> - Online Players Scanned: <yellow><players></yellow>")
-                .with("players", String.valueOf(report.onlinePlayersScanned()))
-                .build());
-            sender.sendMessage(ColorParser.of("<gray> - Loaded Chunks Scanned: <yellow><chunks></yellow>")
-                .with("chunks", String.valueOf(report.loadedChunksScanned()))
-                .build());
-            sender.sendMessage(ColorParser.of("<gray> - Eggs Removed from Inventories: <red><invs></red>")
-                .with("invs", String.valueOf(report.eggsRemovedFromInventories()))
-                .build());
-            sender.sendMessage(ColorParser.of("<gray> - Eggs Removed from Ender Chests: <red><enders></red>")
-                .with("enders", String.valueOf(report.eggsRemovedFromEnderChests()))
-                .build());
-            sender.sendMessage(ColorParser.of("<gray> - Placed Blocks Removed from World: <red><blocks></red>")
-                .with("blocks", String.valueOf(report.blocksRemovedFromWorlds()))
-                .build());
-        } catch (Exception e) {
-            plugin.getComponentLogger().error("Failed to run illegal dragon egg purge:", e);
-            sender.sendMessage(ColorParser.of("<red>An error occurred during the purge sweep. Check console log for details.").build());
-        }
+        plugin.getEggCleanerService().runActivePurge()
+            .thenAccept(report -> {
+                sender.sendMessage(ColorParser.of("<green>Active purge completed successfully in <yellow><time>ms</yellow>.")
+                    .with("time", String.valueOf(report.elapsedTimeMillis()))
+                    .build());
+                sender.sendMessage(ColorParser.of("<gray>Metrics Summary:")
+                    .build());
+                sender.sendMessage(ColorParser.of("<gray> - Online Players Scanned: <yellow><players></yellow>")
+                    .with("players", String.valueOf(report.onlinePlayersScanned()))
+                    .build());
+                sender.sendMessage(ColorParser.of("<gray> - Loaded Chunks Scanned: <yellow><chunks></yellow>")
+                    .with("chunks", String.valueOf(report.loadedChunksScanned()))
+                    .build());
+                sender.sendMessage(ColorParser.of("<gray> - Eggs Removed from Inventories: <red><invs></red>")
+                    .with("invs", String.valueOf(report.eggsRemovedFromInventories()))
+                    .build());
+                sender.sendMessage(ColorParser.of("<gray> - Eggs Removed from Ender Chests: <red><enders></red>")
+                    .with("enders", String.valueOf(report.eggsRemovedFromEnderChests()))
+                    .build());
+                sender.sendMessage(ColorParser.of("<gray> - Placed Blocks Removed from World: <red><blocks></red>")
+                    .with("blocks", String.valueOf(report.blocksRemovedFromWorlds()))
+                    .build());
+            })
+            .exceptionally(e -> {
+                plugin.getComponentLogger().error("Failed to run illegal dragon egg purge:", e);
+                sender.sendMessage(ColorParser.of("<red>An error occurred during the purge sweep. Check console log for details.").build());
+                return null;
+            });
     }
 }
