@@ -40,7 +40,6 @@ subprojects {
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://mvn-repo.arim.space/lesser-gpl3/")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceholderAPI
-        maven("https://repo.artillex-studios.com/releases/")
         maven("https://jitpack.io")
 
         maven("https://repo.opencollab.dev/maven-snapshots/")

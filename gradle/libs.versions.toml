@@ -37,7 +37,7 @@ bstats = "org.bstats:bstats-bukkit:3.2.1"
 placeholderapi = "me.clip:placeholderapi:2.12.2"
 griefprevention = "com.github.TechFortress:GriefPrevention:16.18.2"
 togglepvp = "com.gitlab.TauCu:togglepvp:89ef436"
-axgraves = "com.artillexstudios:AxGraves:1.28.1"
+axgraves = "com.github.Artillex-Studios:AxGraves:1.28.1"
 
 # Database dependencies
 hikaricp = "com.zaxxer:HikariCP:7.0.2"
