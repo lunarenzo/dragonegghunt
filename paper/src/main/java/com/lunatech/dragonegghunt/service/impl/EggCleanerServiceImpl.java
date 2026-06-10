@@ -38,15 +38,83 @@ public final class EggCleanerServiceImpl implements EggCleanerService {
         boolean modified = false;
         for (int i = 0; i < contents.length; i++) {
             ItemStack item = contents[i];
-            if (item != null && item.getType() == Material.DRAGON_EGG && !EggItemFactory.isAlphaEgg(item)) {
-                contents[i] = null;
-                modified = true;
-                count++;
+            if (item != null) {
+                int cleaned = cleanItem(item);
+                if (cleaned > 0) {
+                    count += cleaned;
+                    modified = true;
+                    if (item.getAmount() <= 0) {
+                        contents[i] = null;
+                    }
+                }
             }
         }
         if (modified) {
             inventory.setContents(contents);
         }
+        return count;
+    }
+
+    private int cleanItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return 0;
+        }
+
+        int count = 0;
+
+        // If it is an illegal dragon egg itself
+        if (item.getType() == Material.DRAGON_EGG && !EggItemFactory.isAlphaEgg(item)) {
+            item.setAmount(0); // Mark for removal
+            return 1;
+        }
+
+        // If it is a Shulker Box item
+        if (item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.BlockStateMeta bmeta) {
+            if (bmeta.getBlockState() instanceof org.bukkit.block.ShulkerBox shulker) {
+                Inventory shulkerInv = shulker.getInventory();
+                ItemStack[] contents = shulkerInv.getContents();
+                boolean modified = false;
+                for (int i = 0; i < contents.length; i++) {
+                    ItemStack innerItem = contents[i];
+                    int cleaned = cleanItem(innerItem);
+                    if (cleaned > 0) {
+                        count += cleaned;
+                        modified = true;
+                        if (innerItem == null || innerItem.getAmount() <= 0) {
+                            contents[i] = null;
+                        }
+                    }
+                }
+                if (modified) {
+                    shulkerInv.setContents(contents);
+                    bmeta.setBlockState(shulker);
+                    item.setItemMeta(bmeta);
+                }
+            }
+        }
+
+        // If it is a Bundle item
+        if (item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.BundleMeta bmeta) {
+            List<ItemStack> bundleItems = new ArrayList<>(bmeta.getItems());
+            boolean bundleModified = false;
+            for (int i = 0; i < bundleItems.size(); i++) {
+                ItemStack innerItem = bundleItems.get(i);
+                int cleaned = cleanItem(innerItem);
+                if (cleaned > 0) {
+                    count += cleaned;
+                    bundleModified = true;
+                    if (innerItem == null || innerItem.getAmount() <= 0) {
+                        bundleItems.remove(i);
+                        i--;
+                    }
+                }
+            }
+            if (bundleModified) {
+                bmeta.setItems(bundleItems);
+                item.setItemMeta(bmeta);
+            }
+        }
+
         return count;
     }
 
