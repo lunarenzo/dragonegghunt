@@ -15,7 +15,7 @@ import org.bukkit.event.Listener;
 /**
  * Hook to interface with TogglePvp to coordinate combat sessions and prevent spam/warnings.
  */
-public final class TogglePvpHook extends AbstractHook implements Listener {
+public final class TogglePvPHook extends AbstractHook implements Listener {
 
     private final EggTrackerService eggTrackerService;
     private final CombatSessionService combatSessionService;
@@ -26,7 +26,7 @@ public final class TogglePvpHook extends AbstractHook implements Listener {
      *
      * @param plugin the plugin instance
      */
-    public TogglePvpHook(DragonEggHunt plugin) {
+    public TogglePvPHook(DragonEggHunt plugin) {
         super(plugin);
         this.eggTrackerService = plugin.getEggTrackerService();
         this.combatSessionService = plugin.getCombatSessionService();
