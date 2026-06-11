@@ -47,6 +47,9 @@ dependencies {
     compileOnly(libs.axgraves) {
         exclude(group = "*")
     }
+    compileOnly(libs.pvpmanager) {
+        exclude(group = "*")
+    }
 
     // Database dependencies - Core
     library(libs.bundles.flyway)
@@ -153,7 +156,7 @@ bukkit { // Options: https://docs.eldoria.de/pluginyml/bukkit/
     // Misc properties
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD // STARTUP or POSTWORLD
     depend = listOf()
-    softDepend = listOf("PlaceholderAPI", "GriefPrevention", "AxGraves", "TogglePvp")
+    softDepend = listOf("PlaceholderAPI", "GriefPrevention", "AxGraves", "TogglePvp", "PvPManager")
     loadBefore = listOf()
     provides = listOf()
 }
@@ -191,6 +194,10 @@ paper { // Options: https://docs.eldoria.de/pluginyml/paper/
             required = false
         }
         register("TogglePvp") {
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            required = false
+        }
+        register("PvPManager") {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             required = false
         }

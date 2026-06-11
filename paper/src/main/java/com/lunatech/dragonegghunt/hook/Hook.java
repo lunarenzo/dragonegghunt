@@ -5,6 +5,7 @@ import com.lunatech.dragonegghunt.hook.axgraves.AxGravesHook;
 import com.lunatech.dragonegghunt.hook.griefprevention.GriefPreventionHook;
 import com.lunatech.dragonegghunt.hook.placeholderapi.PAPIHook;
 import com.lunatech.dragonegghunt.hook.togglepvp.TogglePvPHook;
+import com.lunatech.dragonegghunt.hook.pvpmanager.PvPManagerHook;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +18,8 @@ public enum Hook {
     PAPI(PAPIHook.class, "PlaceholderAPI", true),
     GriefPrevention(GriefPreventionHook.class, "GriefPrevention", true),
     AxGraves(AxGravesHook.class, "AxGraves", true),
-    TogglePvp(TogglePvPHook.class, "TogglePvp", true);
+    TogglePvp(TogglePvPHook.class, "TogglePvp", true),
+    PvPManager(PvPManagerHook.class, "PvPManager", true);
 
     private final @NotNull Class<? extends AbstractHook> hookClass; // The hook class used by this hook
     private final @Nullable String pluginName; // The plugin name used by this hook or null if not applicable
@@ -160,5 +162,15 @@ public enum Hook {
     @NotNull
     public static TogglePvPHook getTogglePvPHook() {
         return (TogglePvPHook) Hook.TogglePvp.get();
+    }
+
+    /**
+     * Gets PvPManager hook.
+     *
+     * @return the PvPManager hook
+     */
+    @NotNull
+    public static PvPManagerHook getPvPManagerHook() {
+        return (PvPManagerHook) Hook.PvPManager.get();
     }
 }

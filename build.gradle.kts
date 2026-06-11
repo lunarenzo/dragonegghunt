@@ -43,6 +43,7 @@ subprojects {
         maven("https://jitpack.io")
 
         maven("https://repo.opencollab.dev/maven-snapshots/")
+        maven("https://repo.codemc.org/repository/maven-public/") // PvPManager
     }
 
     dependencies {
