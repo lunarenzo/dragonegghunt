@@ -1,6 +1,8 @@
-package com.lunatech.dragonegghunt.listener;
+package com.lunatech.dragonegghunt.hook.togglepvp;
 
+import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
+import com.lunatech.dragonegghunt.hook.AbstractHook;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import com.lunatech.dragonegghunt.service.CombatSessionService;
 import me.taucu.togglepvp.TogglePvpAPI;
@@ -11,21 +13,49 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 /**
- * Listener to intercept togglepvp's internal checks and prevent spam/warnings.
- * This class is only loaded if the togglepvp plugin is enabled.
+ * Hook to interface with TogglePvp to coordinate combat sessions and prevent spam/warnings.
  */
-public final class TogglePvpListener implements Listener {
+public final class TogglePvpHook extends AbstractHook implements Listener {
 
     private final EggTrackerService eggTrackerService;
     private final CombatSessionService combatSessionService;
+    private boolean loaded = false;
 
-    public TogglePvpListener(DragonEggHunt plugin) {
+    /**
+     * Instantiates a new TogglePvp hook.
+     *
+     * @param plugin the plugin instance
+     */
+    public TogglePvpHook(DragonEggHunt plugin) {
+        super(plugin);
         this.eggTrackerService = plugin.getEggTrackerService();
         this.combatSessionService = plugin.getCombatSessionService();
     }
 
+    @Override
+    public boolean isHookLoaded() {
+        return loaded;
+    }
+
+    @Override
+    public void onEnable(AbstractPlugin plugin) {
+        if (isPluginEnabled("TogglePvp")) {
+            loaded = true;
+            getPlugin().getSLF4JLogger().info("TogglePvp integration hook enabled.");
+        }
+    }
+
+    /**
+     * Intercepts TogglePvp's internal check event to bypass PvP restrictions for egg holder and hunters.
+     *
+     * @param event the DamageHandleEvent
+     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamageHandle(DamageHandleEvent event) {
+        if (!isHookLoaded()) {
+            return;
+        }
+
         if (!(event.getResolvedVictim() instanceof Player victim) 
                 || !(event.getResolvedDamager() instanceof Player damager)) {
             return;

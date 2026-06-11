@@ -32,14 +32,6 @@ public class ListenerHandler implements Reloadable {
         listeners.add(new PvPProtectionListener(this.plugin));
         listeners.add(new EggCleanerListener(this.plugin));
 
-        if (plugin.getServer().getPluginManager().isPluginEnabled("togglepvp")) {
-            try {
-                listeners.add(new TogglePvpListener(this.plugin));
-            } catch (Throwable t) {
-                this.plugin.getSLF4JLogger().warn("Failed to register TogglePvpListener hook", t);
-            }
-        }
-
         // Register listeners here
         for (Listener listener : listeners) {
             plugin.getServer().getPluginManager().registerEvents(listener, plugin);
