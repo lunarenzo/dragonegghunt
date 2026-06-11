@@ -103,8 +103,8 @@ public final class PvPManagerHook extends AbstractHook implements ForceToggleDep
     }
 
     @Override
-    public @NotNull JavaPlugin getPlugin() {
-        return getPlugin();
+    public @NotNull DragonEggHunt getPlugin() {
+        return super.getPlugin();
     }
 
     @Override
