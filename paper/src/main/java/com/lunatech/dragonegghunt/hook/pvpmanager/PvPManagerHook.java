@@ -3,7 +3,6 @@ package com.lunatech.dragonegghunt.hook.pvpmanager;
 import com.lunatech.dragonegghunt.AbstractPlugin;
 import com.lunatech.dragonegghunt.DragonEggHunt;
 import com.lunatech.dragonegghunt.hook.AbstractHook;
-import com.lunatech.dragonegghunt.service.CombatSessionService;
 import com.lunatech.dragonegghunt.service.EggTrackerService;
 import me.chancesd.pvpmanager.PvPManager;
 import me.chancesd.pvpmanager.integration.Hook;
@@ -23,11 +22,12 @@ import java.util.List;
 
 /**
  * Hook to interface with PvPManager to coordinate combat sessions and override region/newbie protection.
+ * This class is designed to avoid loading PvPManager classes when the PvPManager plugin is not present.
  */
-public final class PvPManagerHook extends AbstractHook implements ForceToggleDependency, Listener {
+public final class PvPManagerHook extends AbstractHook implements Listener {
 
     private final @NotNull EggTrackerService eggTrackerService;
-    private final @NotNull CombatSessionService combatSessionService;
+    private @Nullable Object bridge = null;
     private boolean loaded = false;
 
     /**
@@ -38,7 +38,6 @@ public final class PvPManagerHook extends AbstractHook implements ForceToggleDep
     public PvPManagerHook(@NotNull DragonEggHunt plugin) {
         super(plugin);
         this.eggTrackerService = plugin.getEggTrackerService();
-        this.combatSessionService = plugin.getCombatSessionService();
     }
 
     @Override
@@ -58,9 +57,11 @@ public final class PvPManagerHook extends AbstractHook implements ForceToggleDep
                     
                     @SuppressWarnings("unchecked")
                     final List<ForceToggleDependency> list = (List<ForceToggleDependency>) field.get(dm);
-                    list.add(this);
+                    final PvPManagerBridge bridgeImpl = new PvPManagerBridge(getPlugin(), eggTrackerService);
+                    list.add(bridgeImpl);
                     
-                    loaded = true;
+                    this.bridge = bridgeImpl;
+                    this.loaded = true;
                     getPlugin().getSLF4JLogger().info("PvPManager integration hook enabled and injected successfully.");
                 }
             } catch (Throwable t) {
@@ -71,7 +72,7 @@ public final class PvPManagerHook extends AbstractHook implements ForceToggleDep
 
     @Override
     public void onDisable(@NotNull AbstractPlugin plugin) {
-        if (loaded) {
+        if (loaded && bridge != null) {
             try {
                 final Plugin pvpManagerPlugin = Bukkit.getPluginManager().getPlugin("PvPManager");
                 if (pvpManagerPlugin instanceof PvPManager pm) {
@@ -81,58 +82,67 @@ public final class PvPManagerHook extends AbstractHook implements ForceToggleDep
                     
                     @SuppressWarnings("unchecked")
                     final List<ForceToggleDependency> list = (List<ForceToggleDependency>) field.get(dm);
-                    list.remove(this);
+                    list.remove((ForceToggleDependency) bridge);
                     
                     getPlugin().getSLF4JLogger().info("PvPManager integration hook disabled and removed successfully.");
                 }
             } catch (Throwable t) {
                 getPlugin().getSLF4JLogger().error("Failed to remove PvPManager hook during disable", t);
             }
+            bridge = null;
             loaded = false;
         }
     }
 
-    @Override
-    public @NotNull String getName() {
-        return "DragonEggHunt";
-    }
+    /**
+     * Lazily loaded bridge class implementing the PvPManager ForceToggleDependency interface.
+     * This class will only be loaded by the JVM if PvPManager is present and onEnable instantiates it.
+     */
+    private static class PvPManagerBridge implements ForceToggleDependency {
+        private final @NotNull JavaPlugin plugin;
+        private final @NotNull EggTrackerService eggTrackerService;
 
-    @Override
-    public @Nullable Hook getHook() {
-        return null; // Not registered in the main dependencies map, so null is safe.
-    }
-
-    @Override
-    public @NotNull DragonEggHunt getPlugin() {
-        return super.getPlugin();
-    }
-
-    @Override
-    public boolean shouldDisable(@NotNull Player player) {
-        if (!isHookLoaded()) {
-            return false;
+        public PvPManagerBridge(@NotNull JavaPlugin plugin, @NotNull EggTrackerService eggTrackerService) {
+            this.plugin = plugin;
+            this.eggTrackerService = eggTrackerService;
         }
-        if (!eggTrackerService.isOverrideRegionProtection()) {
-            return false;
-        }
-        return eggTrackerService.isPvpForced(player.getUniqueId());
-    }
 
-    @Override
-    public boolean shouldDisable(@NotNull Player attacker, @NotNull Player defender, @Nullable ProtectionType reason) {
-        if (!isHookLoaded()) {
-            return false;
+        @Override
+        public boolean shouldDisable(@NotNull Player player) {
+            if (!eggTrackerService.isOverrideRegionProtection()) {
+                return false;
+            }
+            return eggTrackerService.isPvpForced(player.getUniqueId());
         }
-        if (!eggTrackerService.isOverrideRegionProtection()) {
-            return false;
-        }
-        final boolean isAttackerHolder = eggTrackerService.isPvpForced(attacker.getUniqueId());
-        final boolean isDefenderHolder = eggTrackerService.isPvpForced(defender.getUniqueId());
-        return isAttackerHolder || isDefenderHolder;
-    }
 
-    @Override
-    public boolean shouldDisableProtection() {
-        return true;
+        @Override
+        public boolean shouldDisable(@NotNull Player attacker, @NotNull Player defender, @Nullable ProtectionType reason) {
+            if (!eggTrackerService.isOverrideRegionProtection()) {
+                return false;
+            }
+            final boolean isAttackerHolder = eggTrackerService.isPvpForced(attacker.getUniqueId());
+            final boolean isDefenderHolder = eggTrackerService.isPvpForced(defender.getUniqueId());
+            return isAttackerHolder || isDefenderHolder;
+        }
+
+        @Override
+        public boolean shouldDisableProtection() {
+            return true;
+        }
+
+        @Override
+        public @NotNull String getName() {
+            return "DragonEggHunt";
+        }
+
+        @Override
+        public @Nullable Hook getHook() {
+            return null; // Not registered in the main dependencies map, so null is safe.
+        }
+
+        @Override
+        public @NotNull JavaPlugin getPlugin() {
+            return plugin;
+        }
     }
 }
