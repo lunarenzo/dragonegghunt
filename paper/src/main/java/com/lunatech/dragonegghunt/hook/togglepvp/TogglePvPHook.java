@@ -73,22 +73,12 @@ public final class TogglePvPHook extends AbstractHook implements Listener {
             return;
         }
 
-        if (isVictimHolder) {
-            // Case 1: Hunter attacks the Egg Holder.
-            // Cancel togglepvp's check to prevent it from blocking and sending warning messages.
-            event.setCancelled(true);
-            
-            // Sync with togglepvp's native combat system so they are tagged for combat-logging and command blocks
+        // Always cancel TogglePvP's check to give DragonEggHunt sole authority over holder PvP rules
+        event.setCancelled(true);
+
+        // Sync with togglepvp's native combat system so they are tagged for combat-logging and command blocks
+        if (isVictimHolder || combatSessionService.isInCombat(victim.getUniqueId())) {
             triggerTogglePvpCooldown(damager, victim);
-        } else {
-            // Case 2: Egg Holder attacks a Hunter.
-            // Only allow (cancel togglepvp's check) if the hunter is already in active combat.
-            if (combatSessionService.isInCombat(victim.getUniqueId())) {
-                event.setCancelled(true);
-                
-                // Refresh togglepvp's native combat cooldown
-                triggerTogglePvpCooldown(damager, victim);
-            }
         }
     }
 
