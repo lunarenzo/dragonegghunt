@@ -57,39 +57,24 @@ public class EggMovementListener implements Listener {
     }
 
     private boolean checkScheduled = false;
-    private final java.util.Set<UUID> playersWithEggOnCursor = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private boolean isAlphaEgg(ItemStack item) {
         return com.lunatech.dragonegghunt.utility.EggItemFactory.isAlphaEgg(item);
     }
 
     private boolean hasAlphaEgg(Player player) {
-        if (playersWithEggOnCursor.contains(player.getUniqueId())) {
-            org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
-            if (openInv != null) {
-                ItemStack cursor = openInv.getCursor();
-                if (cursor != null && cursor.getType() != org.bukkit.Material.AIR && !isAlphaEgg(cursor)) {
-                    playersWithEggOnCursor.remove(player.getUniqueId());
-                } else {
-                    return true;
-                }
-            } else {
-                return true;
-            }
-        }
-
         // Fast-path check: does the player have any dragon egg at all?
-        boolean hasEggInStorage = player.getInventory().contains(Material.DRAGON_EGG);
-        boolean hasEggInOffHand = player.getInventory().getItemInOffHand().getType() == Material.DRAGON_EGG;
+        final boolean hasEggInStorage = player.getInventory().contains(Material.DRAGON_EGG);
+        final boolean hasEggInOffHand = player.getInventory().getItemInOffHand().getType() == Material.DRAGON_EGG;
         
-        org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
-        boolean hasEggInCursor = openInv != null && openInv.getCursor().getType() == Material.DRAGON_EGG;
+        final org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
+        final boolean hasEggInCursor = openInv != null && openInv.getCursor().getType() == Material.DRAGON_EGG;
         boolean hasEggInTop = false;
         
         if (openInv != null) {
-            org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
+            final org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
-                org.bukkit.event.inventory.InventoryType type = topInventory.getType();
+                final org.bukkit.event.inventory.InventoryType type = topInventory.getType();
                 if (type == org.bukkit.event.inventory.InventoryType.CRAFTING || 
                     type == org.bukkit.event.inventory.InventoryType.WORKBENCH) {
                     hasEggInTop = topInventory.contains(Material.DRAGON_EGG);
@@ -103,8 +88,8 @@ public class EggMovementListener implements Listener {
 
         // Slow-path check: verify metadata
         if (hasEggInStorage) {
-            ItemStack[] contents = player.getInventory().getStorageContents();
-            for (ItemStack item : contents) {
+            final ItemStack[] contents = player.getInventory().getStorageContents();
+            for (final ItemStack item : contents) {
                 if (isAlphaEgg(item)) {
                     return true;
                 }
@@ -119,10 +104,10 @@ public class EggMovementListener implements Listener {
             return true;
         }
 
-        if (hasEggInTop) {
-            org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
+        if (hasEggInTop && openInv != null) {
+            final org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
-                for (ItemStack item : topInventory.getContents()) {
+                for (final ItemStack item : topInventory.getContents()) {
                     if (isAlphaEgg(item)) {
                         return true;
                     }
@@ -142,17 +127,17 @@ public class EggMovementListener implements Listener {
     }
 
     private void scanAndClean(Player player, boolean isLegitimate, boolean[] foundLegitimate) {
-        boolean hasEggInStorage = player.getInventory().contains(Material.DRAGON_EGG);
-        boolean hasEggInOffHand = player.getInventory().getItemInOffHand().getType() == Material.DRAGON_EGG;
+        final boolean hasEggInStorage = player.getInventory().contains(Material.DRAGON_EGG);
+        final boolean hasEggInOffHand = player.getInventory().getItemInOffHand().getType() == Material.DRAGON_EGG;
         
-        org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
-        boolean hasEggInCursor = openInv != null && openInv.getCursor().getType() == Material.DRAGON_EGG;
+        final org.bukkit.inventory.InventoryView openInv = player.getOpenInventory();
+        final boolean hasEggInCursor = openInv != null && openInv.getCursor().getType() == Material.DRAGON_EGG;
         boolean hasEggInTop = false;
         
         if (openInv != null) {
-            org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
+            final org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
-                org.bukkit.event.inventory.InventoryType type = topInventory.getType();
+                final org.bukkit.event.inventory.InventoryType type = topInventory.getType();
                 if (type == org.bukkit.event.inventory.InventoryType.CRAFTING || 
                     type == org.bukkit.event.inventory.InventoryType.WORKBENCH) {
                     hasEggInTop = topInventory.contains(Material.DRAGON_EGG);
@@ -161,16 +146,16 @@ public class EggMovementListener implements Listener {
         }
 
         // If the player has no dragon egg anywhere, skip everything
-        if (!hasEggInStorage && !hasEggInOffHand && !hasEggInCursor && !hasEggInTop && !playersWithEggOnCursor.contains(player.getUniqueId())) {
+        if (!hasEggInStorage && !hasEggInOffHand && !hasEggInCursor && !hasEggInTop) {
             return;
         }
 
         // Main storage scan
         if (hasEggInStorage) {
-            ItemStack[] contents = player.getInventory().getStorageContents();
+            final ItemStack[] contents = player.getInventory().getStorageContents();
             boolean modified = false;
             for (int i = 0; i < contents.length; i++) {
-                ItemStack item = contents[i];
+                final ItemStack item = contents[i];
                 if (isAlphaEgg(item)) {
                     if (isLegitimate && !foundLegitimate[0]) {
                         foundLegitimate[0] = true;
@@ -187,7 +172,7 @@ public class EggMovementListener implements Listener {
 
         // Offhand scan
         if (hasEggInOffHand) {
-            ItemStack offHand = player.getInventory().getItemInOffHand();
+            final ItemStack offHand = player.getInventory().getItemInOffHand();
             if (isAlphaEgg(offHand)) {
                 if (isLegitimate && !foundLegitimate[0]) {
                     foundLegitimate[0] = true;
@@ -198,31 +183,25 @@ public class EggMovementListener implements Listener {
         }
 
         // Cursor scan
-        if (openInv != null && (hasEggInCursor || playersWithEggOnCursor.contains(player.getUniqueId()))) {
-            ItemStack cursor = openInv.getCursor();
-            if (cursor != null && cursor.getType() != org.bukkit.Material.AIR && !isAlphaEgg(cursor)) {
-                playersWithEggOnCursor.remove(player.getUniqueId());
-            } else if (isAlphaEgg(cursor) || playersWithEggOnCursor.contains(player.getUniqueId())) {
+        if (hasEggInCursor && openInv != null) {
+            final ItemStack cursor = openInv.getCursor();
+            if (isAlphaEgg(cursor)) {
                 if (isLegitimate && !foundLegitimate[0]) {
                     foundLegitimate[0] = true;
-                    if (isAlphaEgg(cursor)) {
-                        playersWithEggOnCursor.add(player.getUniqueId());
-                    }
                 } else {
                     openInv.setCursor(new ItemStack(Material.AIR));
-                    playersWithEggOnCursor.remove(player.getUniqueId());
                 }
             }
         }
 
         // Top inventory scan
         if (hasEggInTop && openInv != null) {
-            org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
+            final org.bukkit.inventory.Inventory topInventory = openInv.getTopInventory();
             if (topInventory != null) {
-                ItemStack[] topContents = topInventory.getContents();
+                final ItemStack[] topContents = topInventory.getContents();
                 boolean topModified = false;
                 for (int i = 0; i < topContents.length; i++) {
-                    ItemStack item = topContents[i];
+                    final ItemStack item = topContents[i];
                     if (isAlphaEgg(item)) {
                         if (isLegitimate && !foundLegitimate[0]) {
                             foundLegitimate[0] = true;
@@ -573,7 +552,6 @@ public class EggMovementListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDeath(PlayerDeathEvent event) {
-        playersWithEggOnCursor.remove(event.getEntity().getUniqueId());
         plugin.getDeathHandlingService().handleHolderDeath(event);
     }
 
@@ -621,9 +599,8 @@ public class EggMovementListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        playersWithEggOnCursor.remove(player.getUniqueId());
-        UUID currentHolder = getHolderUuid();
+        final Player player = event.getPlayer();
+        final UUID currentHolder = getHolderUuid();
         
         if (player.getUniqueId().equals(currentHolder)) {
             boolean dropped = false;
@@ -717,13 +694,7 @@ public class EggMovementListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onInventoryCreative(org.bukkit.event.inventory.InventoryCreativeEvent event) {
-        if (event.getWhoClicked() instanceof Player player) {
-            ItemStack cursor = event.getCursor();
-            if (isAlphaEgg(cursor)) {
-                playersWithEggOnCursor.add(player.getUniqueId());
-            } else {
-                playersWithEggOnCursor.remove(player.getUniqueId());
-            }
+        if (event.getWhoClicked() instanceof Player) {
             checkPossessionDelayed();
         }
     }
@@ -746,8 +717,7 @@ public class EggMovementListener implements Listener {
             return;
         }
 
-        playersWithEggOnCursor.remove(player.getUniqueId());
-        org.bukkit.inventory.InventoryView view = event.getView();
+        final org.bukkit.inventory.InventoryView view = event.getView();
         ItemStack cursorItem = view.getCursor();
         if (isAlphaEgg(cursorItem)) {
             // Clear cursor FIRST to prevent any duplication risk before we re-insert.
