@@ -41,7 +41,11 @@ public final class EggCleanerListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryOpen(InventoryOpenEvent event) {
-        int count = eggCleanerService.cleanInventory(event.getInventory());
+        final org.bukkit.inventory.Inventory inventory = event.getInventory();
+        if (inventory.getHolder() instanceof dev.triumphteam.gui.guis.BaseGui) {
+            return;
+        }
+        final int count = eggCleanerService.cleanInventory(inventory);
         if (count > 0) {
             plugin.getSLF4JLogger().warn("Scrubbed {} illegal dragon egg(s) from opened container inventory (viewer: {}).", 
                 count, event.getPlayer().getName());
@@ -50,8 +54,13 @@ public final class EggCleanerListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent event) {
-        ItemStack clicked = event.getCurrentItem();
-        ItemStack cursor = event.getCursor();
+        final org.bukkit.inventory.Inventory clickedInventory = event.getClickedInventory();
+        if (clickedInventory != null && clickedInventory.getHolder() instanceof dev.triumphteam.gui.guis.BaseGui) {
+            return;
+        }
+
+        final ItemStack clicked = event.getCurrentItem();
+        final ItemStack cursor = event.getCursor();
         int count = 0;
 
         if (clicked != null && clicked.getType() == Material.DRAGON_EGG && !EggItemFactory.isAlphaEgg(clicked)) {
