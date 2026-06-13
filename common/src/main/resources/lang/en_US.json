@@ -50,6 +50,7 @@
     "place-evicted-claim": "<red>The Alpha Dragon Egg was found nested inside a secure claim and has returned to the Altar!",
     "holder-quit-broadcast": "<red>The holder has logged out. The Dragon Egg was dropped at their location!",
     "duplicate-detected": "<red>Duplicate Dragon Egg detected! Converted to a normal decorative egg.",
+    "container-storage-blocked": "<red>The Alpha Dragon Egg cannot be placed inside container items like shulker boxes or bundles!",
     "phoenix-respawn": "<red>The Alpha Egg was consumed by <reason> and has returned to the Altar!",
     "reasons": {
       "lava": "Lava",

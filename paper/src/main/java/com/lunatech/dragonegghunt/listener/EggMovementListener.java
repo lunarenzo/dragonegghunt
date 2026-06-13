@@ -62,6 +62,24 @@ public class EggMovementListener implements Listener {
         return com.lunatech.dragonegghunt.utility.EggItemFactory.isAlphaEgg(item);
     }
 
+    private boolean isContainerItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
+        final Material type = item.getType();
+        if (type == Material.BUNDLE) {
+            return true;
+        }
+        final String name = type.name();
+        if (name.endsWith("_SHULKER_BOX") || name.equals("SHULKER_BOX")) {
+            return true;
+        }
+        if (item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.BlockStateMeta bmeta) {
+            return bmeta.getBlockState() instanceof org.bukkit.block.ShulkerBox;
+        }
+        return false;
+    }
+
     private boolean hasAlphaEgg(Player player) {
         // Fast-path check: does the player have any dragon egg at all?
         final boolean hasEggInStorage = player.getInventory().contains(Material.DRAGON_EGG);
@@ -812,6 +830,19 @@ public class EggMovementListener implements Listener {
                type == org.bukkit.event.inventory.InventoryType.CRAFTING ||
                type == org.bukkit.event.inventory.InventoryType.WORKBENCH;
      }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryClickContainerItem(InventoryClickEvent event) {
+        final ItemStack clicked = event.getCurrentItem();
+        final ItemStack cursor = event.getCursor();
+
+        if ((isAlphaEgg(clicked) && isContainerItem(cursor)) || (isAlphaEgg(cursor) && isContainerItem(clicked))) {
+            event.setCancelled(true);
+            if (event.getWhoClicked() instanceof Player player) {
+                player.sendMessage(Translation.as("egghunt.container-storage-blocked"));
+            }
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInventoryClickContainer(InventoryClickEvent event) {
