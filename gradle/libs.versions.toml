@@ -2,8 +2,8 @@
 paper-api = "1.21.11-R0.1-SNAPSHOT"
 paper-run = "1.21.11"
 commandapi = "11.2.0"
-flyway = "12.7.0"
-jooq = "3.21.4"
+flyway = "12.11.0"
+jooq = "3.21.6"
 configurate = "4.2.0-GeyserMC-SNAPSHOT"
 colorparser = "4.2.0"
 threadutil = "1.4.0"
@@ -51,12 +51,12 @@ jakarta = "jakarta.xml.bind:jakarta.xml.bind-api:4.0.5" # Compiler bug, see: htt
 h2 = "com.h2database:h2:2.4.240"
 sqlite = "org.xerial:sqlite-jdbc:3.53.2.0"
 mysql = "com.mysql:mysql-connector-j:9.7.0"
-mariadb = "org.mariadb.jdbc:mariadb-java-client:3.5.8"
+mariadb = "org.mariadb.jdbc:mariadb-java-client:3.5.9"
 
 # Messaging drivers
-jedis = "redis.clients:jedis:7.5.2"
-nats = "io.nats:jnats:2.25.3"
-rabbitmq = "com.rabbitmq:amqp-client:5.31.0"
+jedis = "redis.clients:jedis:7.5.3"
+nats = "io.nats:jnats:2.26.0"
+rabbitmq = "com.rabbitmq:amqp-client:5.33.1"
 
 # Testing
 junit-bom = "org.junit:junit-bom:6.1.0"
