@@ -52,7 +52,7 @@ jobs:
     runs-on: ${{ inputs.os }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1 # Shallow clone for faster checkout
 
@@ -87,7 +87,7 @@ jobs:
       # Generate build provenance attestations if enabled
       - name: Generate Build Provenance Attestations
         if: ${{ inputs.generate_attestations }}
-        uses: actions/attest@v4
+        uses: actions/attest@v4.2.0
         with:
           subject-path: |
             ${{ github.workspace }}/api/build/libs/*.jar
@@ -131,7 +131,7 @@ jobs:
       # Checkout repository
       - name: Checkout Repository
         if: ${{ !contains(github.ref_name, inputs.prerelease_suffix) }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1 # Shallow clone for faster checkout
 
@@ -157,7 +157,7 @@ jobs:
     runs-on: ${{ inputs.os }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1 # Shallow clone for faster checkout
 
@@ -190,7 +190,7 @@ jobs:
 
       - name: Generate Build Provenance Attestations
         if: ${{ inputs.generate_attestations }}
-        uses: actions/attest@v4
+        uses: actions/attest@v4.2.0
         with:
           subject-path: |
             ${{ github.workspace }}/api/build/libs/*.jar
